@@ -38,7 +38,7 @@ def poligono_3():
 	glFinish()
 
 def poligono_4():
-	filename('Polygon_4.bmp')
+	filename('All_Polygon.bmp')
 	glCreateWindow(800,800)
 	glViewPort(0,0,800,800)
 	glClearColor(0,0,0)
@@ -60,4 +60,8 @@ def poligono_4():
 
 
 
-print(poligono_3())
+"""
+Main to ejecute
+"""
+print('Bienvenido')
+print(poligono_4())
