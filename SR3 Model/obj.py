@@ -30,7 +30,6 @@ class Obj(object):
 				n = 1
 				#vertice = [x,y]
 				self.vertices.append(((float(lineV[n])),((float(lineV[n+1])))))
-
 			#Lineas con valores de F
 			if(lineas[0] == 'f'):
 				lineF = lineas.split(' ')
@@ -42,7 +41,6 @@ class Obj(object):
 					#El valor sera guardado en una lista
 					face.append(int(i[0]))
 				self.faces.append(face)
-
 				#self.faces.append([list(map(int, face.split('/'))) for face in lineas[0].split(' ')])
 		#Cerramos el archivo
 		archivo.close()

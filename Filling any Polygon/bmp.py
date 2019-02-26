@@ -193,17 +193,36 @@ def filling_any_polygon(vertices):
 		if i  != nvertices:
 			glLine(vertices[i], vertices[i+1])
 
+	for x in range(xmin, xmax):
+		for y in range(ymin, ymax):
+			dentro = verificar_puntos(x,y,vertices)
+			if dentro:
+				windows.point(x,y)
+
 	#Ordenando a partir de ymin
 	#scan = sorted(vertices, key=lambda tup: tup[1], reverse=False)
-
-	print(xmin)
 
 	#Comprobando cual es el numero mayor
 	#mat = [vertices[0],vertices[1],vertices[2],vertices[3]]
 	#print(max(mat[0]))	
 
 def verificar_puntos(x,y,vertices):
-	pass
+	counter = 0
+	p1 = vertices[0]
+	n = len(vertices)
+	for i in range(n+1):
+		p2 = vertices[i % n]
+		if(y > min(p1[1], p2[1])):
+			if(y <= max(p1[1], p2[1])):
+				if(p1[1] != p2[1]):
+					xinters = (y-p1[1])*(p2[0]-p1[0])/(p2[1]-p1[1])+p1[0]
+					if(p1[0] == p2[0] or x <= xinters):
+						counter += 1
+		p1 = p2
+	if(counter % 2 == 0):
+		return False
+	else:
+		return True
 	
 class Vertex(object):
 

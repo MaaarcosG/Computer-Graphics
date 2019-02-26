@@ -14,7 +14,7 @@ def poligono_1():
 
 def poligono_2():
 	filename('Polygon_2.bmp')
-	glCreateWindow(500,500)
+	glCreateWindow(800,800)
 	glViewPort(0,0,800,800)
 	glClearColor(0,0,0)
 	glClear() 
@@ -55,6 +55,7 @@ def poligono_4():
 	filling_any_polygon(puntos_2)
 	filling_any_polygon(puntos_3)
 	filling_any_polygon(puntos_4)
+	glColor(0,0,0)
 	filling_any_polygon(puntos_5)
 	glFinish()
 
@@ -64,4 +65,5 @@ def poligono_4():
 Main to ejecute
 """
 print('Bienvenido')
-print(poligono_4())
+poligono_2()
+poligono_4()
