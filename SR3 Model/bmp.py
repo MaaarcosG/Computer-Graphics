@@ -7,6 +7,12 @@
 import struct
 import math
 from obj import *
+#Importamos la coleccion
+from collections import namedtuple
+
+#Creamos los vectores
+v2 = namedtuple('Point2', ['x','y'])
+v3 = namedtuple('Point3', ['x','y','z'])
 
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
@@ -92,6 +98,11 @@ def glColor(r,g,b):
 	#print("Vertex Color: %d, %d, %d" % (R,G,B))
 	windows.vertexColor = color(R,G,B)
 
+#Funcion para terminar
+def glFinish():
+	global windows
+	windows.write(filename)
+
 #Funcion para crear lineas
 def glLine(vertex1, vertex2):
 	global windows
@@ -143,11 +154,6 @@ def glLine(vertex1, vertex2):
 			y += 1 if y1 < y2 else -1
 			limite += 2*dx
 
-#Funcion para terminar
-def glFinish():
-	global windows
-	windows.write(filename)
-
 def load(filename, translate=(0,0), scale=(1,1)):
 	objeto = Obj(filename)
 	caras = objeto.faces
@@ -166,73 +172,65 @@ def load(filename, translate=(0,0), scale=(1,1)):
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
+		#filling_any_polygon(verticesCaras)
+
+def load_2(filename, translate=(0,0), scale=(1,1)):
+	objeto = Obj(filename)
+	caras = objeto.faces
+	vertices = objeto.vertices
+
+	luz = v3(0,0,1)
+
+	for cara in caras:
+		contador = len(caras)
+		verticesCaras = []
+		
+		for vertice in cara:
+			
+			coordenadaVertice = nor(vertices[vertice-1])
+			a = int((coordenadaVertice[0] + translate[0]) * scale[0])
+			b = int((coordenadaVertice[1] + translate[1]) * scale[1])
+			c = int((coordenadaVertice[0] + translate[1]) * scale[1])
+			coordenadaVertice = (a,b,c)
 
 
+			verticesCaras.append(coordenadaVertice)
+
+		nvertices = len(verticesCaras)
+		glLine(verticesCaras[0], verticesCaras[-1])
+
+		#Ciclo para encontrar el numero de vertices de un poligono
+		for i in range(nvertices-1):
+			if i  != nvertices:
+				glLine(verticesCaras[i], verticesCaras[i+1])
+			print(verticesCaras[3])
+	
 
 def nor(n):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
 	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
 
 def filling_any_polygon(vertices):
-	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	#numero de vertices
-	nvertices = len(vertices)
-
-	#Calculando los Y maximos y minimos
-	ymax = sorted(vertices, key=lambda tup: tup[1], reverse=True)[0][1]
-	ymin = sorted(vertices, key=lambda tup: tup[1])[0][1]
-	#Calculamos los X maximo y minimos
-	xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
-	xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
-	
-	#Lista de coordenadas
-	glLine(vertices[0], vertices[-1])
-
-	#Ciclo para encontrar el numero de vertices de un poligono
-	for i in range(nvertices-1):
-		if i  != nvertices:
-			glLine(vertices[i], vertices[i+1])
-
-	for x in range(xmin, xmax):
-		for y in range(ymin, ymax):
-			dentro = verificar_puntos(x,y,vertices)
-			if dentro:
-				windows.point(x,y)
-
-	#Ordenando a partir de ymin
-	#scan = sorted(vertices, key=lambda tup: tup[1], reverse=False)
-
-	#Comprobando cual es el numero mayor
-	#mat = [vertices[0],vertices[1],vertices[2],vertices[3]]
-	#print(max(mat[0]))	
+	pass
 
 def verificar_puntos(x,y,vertices):
-	counter = 0
-	p1 = vertices[0]
-	n = len(vertices)
-	for i in range(n+1):
-		p2 = vertices[i % n]
-		if(y > min(p1[1], p2[1])):
-			if(y <= max(p1[1], p2[1])):
-				if(p1[1] != p2[1]):
-					xinters = (y-p1[1])*(p2[0]-p1[0])/(p2[1]-p1[1])+p1[0]
-					if(p1[0] == p2[0] or x <= xinters):
-						counter += 1
-		p1 = p2
-	if(counter % 2 == 0):
-		return False
-	else:
-		return True
-	
-class Vertex(object):
+	pass
 
+#Transformar datos a normal
+def nor(n):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)	
+
+class Vertex(object):
 	def __init__(self, vert):
 		self.x = vert[0]
 		self.y = vert[1]
 
 	def __str__(self):
 		return "x: " + str(self.x) + " y: " + str(self.y)
-			
+
+Negro = color(0,0,0)
+Blanco = color(255,255,255)
 #CLASE QUE GENERA ESCRITORIO DE IMAGEN
 class Bitmap(object):
 	#constructor de la clase
@@ -240,19 +238,14 @@ class Bitmap(object):
 		self.width = width
 		self.height = height
 		self.framebuffer = []
-		self.clearColor = color(91,204,57)
-		self.vertexColor = color(1,1,1)
+		self.clearColor = Blanco
+		self.vertexColor = Blanco
 		self.clear()
 
 	def clear(self):
-		self.framebuffer = [
-		[
-			self.clearColor
-				for x  in range(self.width)
-			]
-   			for y in range(self.height)
+		self.framebuffer = [[Negro for x  in range(self.width)] for y in range(self.height)]
+		self.zbuffer = [[-float('inf') for x in range(self.width)] for y in range(self.height)]
 
-		]
 	def write(self,filename="out.bmp"):
 		f = open(filename,'bw')
 		#file header (14)

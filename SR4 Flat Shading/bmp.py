@@ -13,13 +13,6 @@ from collections import namedtuple
 #Creamos los vectores
 v2 = namedtuple('Point2', ['x','y'])
 v3 = namedtuple('Point3', ['x','y','z'])
-#Variables globales
-windows = None
-filename = "out.bmp"
-ViewPort_X = None
-ViewPort_Y = None
-ViewPort_H = None
-ViewPort_W = None
 
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
@@ -33,47 +26,14 @@ def dword(c):
 def color(r,g,b):
 	return bytes([b,g,r])
 
-#Funcion para calcular el producto cruz
-def pCruz(v0,v1):
-	vector_1 = v0.y * v1.z - v0.z * v1.y
-	vector_2 = v0.z * v1.x - v0.x * v1.z
-	vector_3 = v0.x * v1.y - v0.y * v1.x
+#Variables globales
+windows = None
+filename = "out.bmp"
+ViewPort_X = None
+ViewPort_Y = None
+ViewPort_H = None
+ViewPort_W = None
 
-	v3 = (vector_1,vector_2,vector_3)
-
-	return v3
-
-#Funcion para calcular el producto punto
-def pPunto(v0,v1):
-	vec = ((v0.x * v1.x) + (v0.y * v1.y) + (v0.z * v1.z))
-	return vec
-
-#Longitud del vector
-def longitud(v0):
-	length = (v0.x + v0.y + v0.z)
-	return length
-
-#Funcion para encontrar el vector normal
-def normal(v0):
-	lon = longitud(v0)
-
-	if not lon:
-		return v3(0,0,0)
-	
-	return v3(v0.x/lon, v0.y/lon, v0.z/lon)
-
-#Resta de la colección
-def rest(v0,v1):
-	resta = v3((v0.x - v1.x), (v0.y - v1.y), (v0.z - v1.z))
-	return resta
-
-def box(*vertice):
-	xs = [vertex.x for vertex in vertice]
-	ys = [vertex.y for vertex in vertice]
-	xs.sort()
-	ys.sort()
-
-	return v2(xs[0],ys[0]), v2(xs[-1],ys[-1])
 
 def filename(name):
 	global filename
@@ -143,10 +103,48 @@ def glFinish():
 	global windows
 	windows.write(filename)
 
-def nor(n):
-	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
+#Funcion para calcular el producto cruz
+def pCruz(v0,v1):
+	vector_1 = v0.y * v1.z - v0.z * v1.y
+	vector_2 = v0.z * v1.x - v0.x * v1.z
+	vector_3 = v0.x * v1.y - v0.y * v1.x
+
+	v3 = (vector_1,vector_2,vector_3)
+
+	return v3
+
+#Funcion para calcular el producto punto
+def pPunto(v0,v1):
+	vec = ((v0.x * v1.x) + (v0.y * v1.y) + (v0.z * v1.z))
+	return vec
+
+#Longitud del vector
+def longitud(v0):
+	length = (v0.x + v0.y + v0.z)
+	return length
+
+#Funcion para encontrar el vector normal
+def normal(v0):
+	lon = longitud(v0)
+
+	if not lon:
+		return v3(0,0,0)
 	
+	return v3(v0.x/lon, v0.y/lon, v0.z/lon)
+
+#Resta de la colección
+def rest(v0,v1):
+	resta = v3((v0.x - v1.x), (v0.y - v1.y), (v0.z - v1.z))
+	return resta
+
+def box(*vertice):
+	xs = [vertex.x for vertex in vertice]
+	ys = [vertex.y for vertex in vertice]
+	xs.sort()
+	ys.sort()
+
+	return v2(xs[0],ys[0]), v2(xs[-1],ys[-1])
+
 #Funcion para crear lineas
 def glLine(vertex1, vertex2):
 	global windows
@@ -198,6 +196,62 @@ def glLine(vertex1, vertex2):
 			y += 1 if y1 < y2 else -1
 			limite += 2*dx
 
+def load(filename, translate=(0,0), scale=(1,1)):
+	objeto = Obj(filename)
+	caras = objeto.faces
+	vertices = objeto.vertices
+
+	for cara in caras:
+		verticesCaras = []
+		for vertice in cara:
+			coordenadaVertice = nor(vertices[vertice-1])
+			coordenadaVertice = (int((coordenadaVertice[0] + translate[0]) * scale[0]), int((coordenadaVertice[1] + translate[1]) * scale[1]))
+			verticesCaras.append(coordenadaVertice)
+		#Lista de coordenadas
+		nvertices = len(verticesCaras)
+		glLine(verticesCaras[0], verticesCaras[-1])
+		#Ciclo para encontrar el numero de vertices de un poligono
+		for i in range(nvertices-1):
+			if i  != nvertices:
+				glLine(verticesCaras[i], verticesCaras[i+1])
+		#filling_any_polygon(verticesCaras)
+
+def load_2(filename, translate=(0,0), scale=(1,1)):
+	objeto = Obj(filename)
+	caras = objeto.faces
+	vertices = objeto.vertices
+
+	luz = v3(0,0,1)
+
+	for cara in caras:
+		contador = len(caras)
+		verticesCaras = []
+		
+		for vertice in cara:
+			
+			coordenadaVertice = nor(vertices[vertice-1])
+			a = int((coordenadaVertice[0] + translate[0]) * scale[0])
+			b = int((coordenadaVertice[1] + translate[1]) * scale[1])
+			c = int((coordenadaVertice[0] + translate[1]) * scale[1])
+			coordenadaVertice = (a,b,c)
+
+
+			verticesCaras.append(coordenadaVertice)
+
+		nvertices = len(verticesCaras)
+		glLine(verticesCaras[0], verticesCaras[-1])
+		#Ciclo para encontrar el numero de vertices de un poligono
+		for i in range(nvertices-1):
+			if i  != nvertices:
+				glLine(verticesCaras[i], verticesCaras[i+1])
+
+			print(verticesCaras[3])
+	
+
+def nor(n):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
+
 def filling_any_polygon(vertices):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
 	#numero de vertices
@@ -224,13 +278,6 @@ def filling_any_polygon(vertices):
 			if dentro:
 				windows.point(x,y)
 
-	#Ordenando a partir de ymin
-	#scan = sorted(vertices, key=lambda tup: tup[1], reverse=False)
-
-	#Comprobando cual es el numero mayor
-	#mat = [vertices[0],vertices[1],vertices[2],vertices[3]]
-	#print(max(mat[0]))	
-
 def verificar_puntos(x,y,vertices):
 	counter = 0
 	p1 = vertices[0]
@@ -249,6 +296,30 @@ def verificar_puntos(x,y,vertices):
 	else:
 		return True
 
+#Coordenadas barycentricas
+def barycentric(A,B,C,P):
+	BARY = pCruz(v3(C.x - A.x, B.x - A.x, A.x - P.x), v3(C.y - A.y, B.y - A.y, A.y - P.y))
+
+	if abs(BARY[2] < 1):
+		return -1,-1,-1
+
+	return (1 - (bary[0] + bary[1]) / bary[2], bary[1] / bary[2], bary[0] / bary[2])
+
+def triangle(self, A,B,C, color=None):
+	bmin, bmax = box(A,B,C)
+	for x in range(bmin.x,bmax.x+1):
+		for y in range(bmin.y,bmax.y+1):
+			w,v,y = barycentric(A,B,C, v2(x,y))
+
+		if (w<0) or (v<0) or (u<0):
+			continue
+
+		z = A.z * w + B.z * v + C.z * u
+
+		if z > self.zbuffer[x][y]:
+			windows.point(x,y,color)
+			sel.zbuffer[x][y] = z
+
 #Transformamos el vector
 def transform(vertex,translate=(0,0,0),scale=(1,1,1,)):
 	ver_1 = round((vertex[0] + translate[0]) * scale[0])
@@ -257,29 +328,11 @@ def transform(vertex,translate=(0,0,0),scale=(1,1,1,)):
 
 	return v3(ver_1,ver_2,ver_3)
 
-def load(filename, translate=(0,0), scale=(1,1)):
-	objeto = Obj(filename)
-	#Caras del objeto
-	caras = objeto.faces
-	#Vertices del Objeto
-	vertices = objeto.vertices
+#Transformar datos a normal
+def nor(n):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)	
 
-	luz = v3(0,0,1)
-	for cara in caras:
-		verticesCaras = []
-		for vertice in cara:
-			coordenadaVertice = nor(vertices[vertice-1])
-			coordenadaVertice = (int((coordenadaVertice[0] + translate[0]) * scale[0]), int((coordenadaVertice[1] + translate[1]) * scale[1]))
-			verticesCaras.append(coordenadaVertice)
-		#Lista de coordenadas
-		nvertices = len(verticesCaras)
-		glLine(verticesCaras[0], verticesCaras[-1])
-		#Ciclo para encontrar el numero de vertices de un poligono
-		for i in range(nvertices-1):
-			if i  != nvertices:
-				glLine(verticesCaras[i], verticesCaras[i+1])
-		#filling_any_polygon(verticesCaras)
-	
 class Vertex(object):
 	def __init__(self, vert):
 		self.x = vert[0]
@@ -338,6 +391,7 @@ class Bitmap(object):
 
 	def point(self, x, y, color = None):
 		try:
-			self.framebuffer[y][x] = color or self.clearColor
+			self.framebuffer[y][x] = color or self.vertexColor
 		except:
 			pass
+

@@ -8,7 +8,7 @@ def reyBoo():
 	glClear() 
 	glColor(1,1,1)
 	#utilizamos la funcion lineas
-	load('./modelos/test2.obj', (500,200z),(0.5,0.5))
+	load('./modelos/reyBooC2.obj', (500,200),(0.5,0.5))
 	glFinish()
 
 print(reyBoo())

@@ -46,10 +46,6 @@ class Obj(object):
 		archivo.close()
 
 
-
-
-
-
 #-------- INTENTO CON SOLO UNA LINEA ----------#
 #vertice = []
 #lineas = 'v 0.376516 1.770015 -2.274176'
