@@ -154,61 +154,31 @@ def glLine(vertex1, vertex2):
 			y += 1 if y1 < y2 else -1
 			limite += 2*dx
 
-def load(filename, translate=(0,0), scale=(1,1)):
+def load(filename, translate=(0,0), scale=(1,1)):	
 	objeto = Obj(filename)
-	caras = objeto.faces
-	vertices = objeto.vertices
 
-	for cara in caras:
+	for cara in objeto.faces:
+		#Lista para guardar cada uno de los vertices
 		verticesCaras = []
 		for vertice in cara:
-			coordenadaVertice = nor(vertices[vertice-1])
-			coordenadaVertice = (int((coordenadaVertice[0] + translate[0]) * scale[0]), int((coordenadaVertice[1] + translate[1]) * scale[1]))
-			verticesCaras.append(coordenadaVertice)
-		#Lista de coordenadas
-		nvertices = len(verticesCaras)
-		glLine(verticesCaras[0], verticesCaras[-1])
-		#Ciclo para encontrar el numero de vertices de un poligono
-		for i in range(nvertices-1):
-			if i  != nvertices:
-				glLine(verticesCaras[i], verticesCaras[i+1])
-		#filling_any_polygon(verticesCaras)
-
-def load_2(filename, translate=(0,0), scale=(1,1)):
-	objeto = Obj(filename)
-	caras = objeto.faces
-	vertices = objeto.vertices
-
-	luz = v3(0,0,1)
-
-	for cara in caras:
-		contador = len(caras)
-		verticesCaras = []
-		
-		for vertice in cara:
-			
-			coordenadaVertice = nor(vertices[vertice-1])
-			a = int((coordenadaVertice[0] + translate[0]) * scale[0])
-			b = int((coordenadaVertice[1] + translate[1]) * scale[1])
-			c = int((coordenadaVertice[0] + translate[1]) * scale[1])
-			coordenadaVertice = (a,b,c)
-
-
+			coordenadaVertice = nor(objeto.vertices[vertice-1])
+			#Vertices en x
+			vx = int((coordenadaVertice[0] + translate[0]) * scale[0])
+			#Vertices en y
+			vy = int((coordenadaVertice[1] + translate[1]) * scale[1])
+			coordenadaVertice = (vx,vy)
+			#Agragamos los vertices a la lista
 			verticesCaras.append(coordenadaVertice)
 
+		#numero de vertices dentro de la lista
 		nvertices = len(verticesCaras)
+		#La primera linea utlizando los vertices correctoss
 		glLine(verticesCaras[0], verticesCaras[-1])
 
 		#Ciclo para encontrar el numero de vertices de un poligono
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
-			print(verticesCaras[3])
-	
-
-def nor(n):
-	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
 
 def filling_any_polygon(vertices):
 	pass
