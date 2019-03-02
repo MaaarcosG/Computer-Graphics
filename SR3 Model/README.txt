@@ -7,3 +7,4 @@ Además, tiene cada uno de los obj de Rey Boo, es decir, el ReyBoo original no qu
 Anexos: 
 
 Repositorio para la clase y las diferentes carpetas de trabajo:
+https://github.com/MaaarcosG/SimpleRenderer/tree/master/SR3%20Model
