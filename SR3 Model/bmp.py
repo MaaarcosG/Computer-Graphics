@@ -175,7 +175,7 @@ def load(filename, translate=(0,0), scale=(1,1)):
 		#La primera linea utlizando los vertices correctoss
 		glLine(verticesCaras[0], verticesCaras[-1])
 
-		#Ciclo para encontrar el numero de vertices de un poligono
+		#Ciclo para encontrar las uniones de cada uno de las caras
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
