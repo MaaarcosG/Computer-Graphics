@@ -73,7 +73,7 @@ def glClearColor(r,g,b):
 	R = int(math.floor(r * 255))
 	G = int(math.floor(g * 255))
 	B = int(math.floor(b * 255))
-	#Devuelve los numeros para crear otro color, es decir limpiar el color. 
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
 	#print("Limpieza de color: %d, %d, %d" % (R,G,B))
 	windows.clearColor = color(R,G,B)
 
@@ -81,7 +81,7 @@ def glClearColor(r,g,b):
 #Funcion que cambie el color de un punto.
 def glVertex(x,y):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	
+
 	PortX = int((x+1) * ViewPort_W * (1/2) + ViewPort_X)
 	PortY = int((y+1) * ViewPort_H * (1/2) + ViewPort_Y)
 	#print('glVertex X: %d y %d' % (PortX,PortY))
@@ -94,7 +94,7 @@ def glColor(r,g,b):
 	R = int(math.floor(r * 255))
 	G = int(math.floor(g * 255))
 	B = int(math.floor(b * 255))
-	#Devuelve los numeros para crear otro color, es decir limpiar el color. 
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
 	#print("Vertex Color: %d, %d, %d" % (R,G,B))
 	windows.vertexColor = color(R,G,B)
 
@@ -129,7 +129,7 @@ def normal(v0):
 
 	if not lon:
 		return v3(0,0,0)
-	
+
 	return v3(v0.x/lon, v0.y/lon, v0.z/lon)
 
 #Resta de la colección
@@ -153,7 +153,7 @@ def glLine(vertex1, vertex2):
 	y1 = vertex1[1]
 	x2 = vertex2[0]
 	y2 = vertex2[1]
-	#--------# y = mx + b #--------# 
+	#--------# y = mx + b #--------#
 	#Valores en X
 	dx = abs(x2-x1)
 	#Valores en Y
@@ -170,7 +170,7 @@ def glLine(vertex1, vertex2):
 	if(st):
 		x1,y1 = y1,x1
 		x2,y2 = y2,x2
-	
+
 	if(x1>x2):
 		x1,x2 = x2,x1
 		y1,y2 = y2,y1
@@ -183,7 +183,7 @@ def glLine(vertex1, vertex2):
 	llenar = 0
 	limite = dx
 	y = y1
-	
+
 	#pendiente
 	#m = dy/dx
 	for x in range(x1,(x2+1)):
@@ -214,7 +214,7 @@ def load(filename, translate=(0,0), scale=(1,1)):
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
-		#filling_any_polygon(verticesCaras)
+		filling_any_polygon(verticesCaras)
 
 def load_2(filename, translate=(0,0), scale=(1,1)):
 	objeto = Obj(filename)
@@ -226,9 +226,9 @@ def load_2(filename, translate=(0,0), scale=(1,1)):
 	for cara in caras:
 		contador = len(caras)
 		verticesCaras = []
-		
+
 		for vertice in cara:
-			
+
 			coordenadaVertice = nor(vertices[vertice-1])
 			a = int((coordenadaVertice[0] + translate[0]) * scale[0])
 			b = int((coordenadaVertice[1] + translate[1]) * scale[1])
@@ -246,7 +246,7 @@ def load_2(filename, translate=(0,0), scale=(1,1)):
 				glLine(verticesCaras[i], verticesCaras[i+1])
 
 			print(verticesCaras[3])
-	
+
 
 def nor(n):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
@@ -263,7 +263,7 @@ def filling_any_polygon(vertices):
 	#Calculamos los X maximo y minimos
 	xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
 	xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
-	
+
 	#Lista de coordenadas
 	glLine(vertices[0], vertices[-1])
 
@@ -331,7 +331,7 @@ def transform(vertex,translate=(0,0,0),scale=(1,1,1,)):
 #Transformar datos a normal
 def nor(n):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)	
+	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
 
 class Vertex(object):
 	def __init__(self, vert):
@@ -394,4 +394,3 @@ class Bitmap(object):
 			self.framebuffer[y][x] = color or self.vertexColor
 		except:
 			pass
-
