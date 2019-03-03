@@ -62,7 +62,7 @@ class Obj(object):
 				#self.faces.append([list(map(int, face.split('/'))) for face in lineas[0].split(' ')])
 		#Cerramos el archivo
 		archivo.close()
-""""
+"""
 #-------- INTENTO CON SOLO UNA LINEA ----------#
 #vertice = []
 #lineas = 'v 0.376516 1.770015 -2.274176'
