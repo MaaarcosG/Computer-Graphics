@@ -8,6 +8,8 @@ import math
 from obj import *
 #Importamos la coleccion
 from collections import namedtuple
+v2 = namedtuple('Point2', ['x', 'y'])
+v3 = namedtuple('Point3', ['x', 'y', 'z'])
 
 #Variables globales
 ViewPort_X = None
@@ -27,6 +29,89 @@ def dword(c):
 def color(r,g,b):
 	return bytes([b,g,r])
 
+#------ FUNCIONES PARA TRABJAR CON VECTORES DE LONGITUD 3 ------#
+
+#Suma de vectores
+def resta(v0,v1):
+	#Puntos en cada coordenadas
+	px = v0.x + v1.x
+	py = v0.y + v1.y
+	pz = v0.z + v1.z
+
+	#retorna un vector nuevo con la suma
+	return v3(px,py,pz)
+
+#Resta de coordeadas
+def resta(v0,v1):
+	#Puntos en cada coordenadas
+	px = v0.x - v1.x
+	py = v0.y - v1.y
+	pz = v0.z - v1.z
+
+	#retorna un vector nuevo con la resta
+	return v3(px,py,pz)
+
+def mul(v0,k):
+	#Puntos en cada coordenadas
+	px = v0.x * k
+	py = v0.y * k
+	pz = v0.z * k
+
+	#retorna un vector nuevo con la multiplicacion a un escalar
+	return v3(px,py,pz)
+
+#Funcion que encontrar un vector nuevo, utlizando algebra producto cruz
+def pCruz(v0,v1):
+	#Puntos en cada coordenadas
+	p1 = v0.y * v1.z - v0.z * v1.y
+	p2 = v0.z * v1.x - v0.x * v1.z
+	p3 = v0.x * v1.y - v0.y * v1.x
+
+	#Retorna un nuevo vector
+	return v3(p1,p2,p3)
+
+#Funcion para la longitud del vector
+def longitud(v0):
+	px = v0.x
+	py = v0.y
+	pz = v0.z
+	#Suma de puntos
+	len = px+py+pz
+	return len
+
+#Funcion para encontrar el vector normal
+def normal(v0):
+	v0Lon = longitud(v0)
+
+	if not v0Lon:
+		return v3(0,0,0)
+
+	px = v0.x/v0Lon
+	py = v0.y/v0Lon
+	pz = v0.z/v0Lon
+
+	return v3(px,py,pz)
+
+#Bounding Box
+def bbox(*vertices):
+	xs = [vertex.x for vertex in vertices]
+	xy = [vertex.y for vertex in vertices]
+	xs.sort()
+	ys.sort()
+
+	p1 = xs[0], ys[0]
+	p2 = xs[-1], ys[-1]
+	return v2(p1), v2(p2)
+
+#Funcion para encontrar las coordenadas barycentricas
+def baricentricas(A,B,C,P):
+	bcoor = pCruz((v3(C.x - A.x, B.x - A.x, A.x - P.x)),(v3(C.y - A.y, B.y - A.y, A.y - P.y)))
+
+	if abs(bcoor[2] < 1):
+		return(-1,-1,-1)
+
+	return (1 - (bcoor[0] + bcoor[1]) / bcoor[2], bcoor[1] / bcoor[2], bcoor[0] / bcoor[2])
+
 #Funcion definara el area de la imagen
 def glViewPort(x,y,width,height):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W
@@ -42,7 +127,9 @@ def glViewPort(x,y,width,height):
 #Transformar datos a normal
 def nor(n):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
+	nx = int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X)
+	ny = int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_Y)
+	return nx, ny
 
 Negro = color(0,0,0)
 Blanco = color(255,255,255)
@@ -89,7 +176,7 @@ class Bitmap(object):
 				f.write(self.framebuffer[x][y])
 		f.close()
 
-	def display(self, filename='out.bmp'):
+	def archivo(self, filename='out.bmp'):
 		self.write(filename)
 
 	def point(self, x, y):
@@ -155,6 +242,7 @@ class Bitmap(object):
 				#Agragamos los vertices a la lista
 				verticesCaras.append(coordenadaVertice)
 
+			#print(verticesCaras[])
 			#numero de vertices dentro de la lista
 			nvertices = len(verticesCaras)
 			#La primera linea utlizando los vertices correctoss
@@ -165,7 +253,7 @@ class Bitmap(object):
 				if i  != nvertices:
 					self.glLine(verticesCaras[i], verticesCaras[i+1])
 
-			self.filling_any_polygon(verticesCaras)
+			#self.filling_any_polygon(verticesCaras)
 
 	#Rellenando cualquier poligono
 	def filling_any_polygon(self,vertices):
@@ -213,3 +301,25 @@ class Bitmap(object):
 			return False
 		else:
 			return True
+
+	def triangulos(self,A,B,C, color=None):
+		b_min, b_max = bbox(A,B,C)
+
+		for x in range(b_min.x, b_max.x+1):
+			for y in range(b_min.y, b_max.y):
+				w, v, u = baricentricas(A,B,C, v2(x,y))
+				if  w < 0 or v < 0 or u < 0:
+					continue
+				z = A.z * w + B.z * v + C.z * u
+
+				if z > self.zbuffer[x][y]:
+					self.point(x,y,color)
+					self.zbuffer[x][y] = z
+
+	#Vector 3 transformado
+	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
+		p_x = round((vertex[0] + translate[0]) * scale[0])
+		p_y = round((vertex[1] + translate[1]) * scale[1])
+		p_z = round((vertex[2] + translate[2]) * scale[2])
+
+		return v3(p_x, p_y, p_z)
