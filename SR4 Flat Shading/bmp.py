@@ -103,47 +103,6 @@ def glFinish():
 	global windows
 	windows.write(filename)
 
-#Funcion para calcular el producto cruz
-def pCruz(v0,v1):
-	vector_1 = v0.y * v1.z - v0.z * v1.y
-	vector_2 = v0.z * v1.x - v0.x * v1.z
-	vector_3 = v0.x * v1.y - v0.y * v1.x
-
-	v3 = (vector_1,vector_2,vector_3)
-
-	return v3
-
-#Funcion para calcular el producto punto
-def pPunto(v0,v1):
-	vec = ((v0.x * v1.x) + (v0.y * v1.y) + (v0.z * v1.z))
-	return vec
-
-#Longitud del vector
-def longitud(v0):
-	length = (v0.x + v0.y + v0.z)
-	return length
-
-#Funcion para encontrar el vector normal
-def normal(v0):
-	lon = longitud(v0)
-	if not lon:
-		return v3(0,0,0)
-
-	return v3(v0.x/lon, v0.y/lon, v0.z/lon)
-
-#Resta de la colección
-def rest(v0,v1):
-	resta = v3((v0.x - v1.x), (v0.y - v1.y), (v0.z - v1.z))
-	return resta
-
-def box(*vertice):
-	xs = [vertex.x for vertex in vertice]
-	ys = [vertex.y for vertex in vertice]
-	xs.sort()
-	ys.sort()
-
-	return v2(xs[0],ys[0]), v2(xs[-1],ys[-1])
-
 #Funcion para crear lineas
 def glLine(vertex1, vertex2):
 	global windows
