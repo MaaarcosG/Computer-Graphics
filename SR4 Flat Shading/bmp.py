@@ -198,22 +198,30 @@ def glLine(vertex1, vertex2):
 
 def load(filename, translate=(0,0), scale=(1,1)):
 	objeto = Obj(filename)
-	caras = objeto.faces
-	vertices = objeto.vertices
 
-	for cara in caras:
+	for cara in objeto.faces:
+		#Lista para guardar cada uno de los vertices
 		verticesCaras = []
 		for vertice in cara:
-			coordenadaVertice = nor(vertices[vertice-1])
-			coordenadaVertice = (int((coordenadaVertice[0] + translate[0]) * scale[0]), int((coordenadaVertice[1] + translate[1]) * scale[1]))
+			coordenadaVertice = nor(objeto.vertices[vertice-1])
+			#Vertices en x
+			vx = int((coordenadaVertice[0] + translate[0]) * scale[0])
+			#Vertices en y
+			vy = int((coordenadaVertice[1] + translate[1]) * scale[1])
+			coordenadaVertice = (vx,vy)
+			#Agragamos los vertices a la lista
 			verticesCaras.append(coordenadaVertice)
-		#Lista de coordenadas
+
+		#numero de vertices dentro de la lista
 		nvertices = len(verticesCaras)
+		#La primera linea utlizando los vertices correctoss
 		glLine(verticesCaras[0], verticesCaras[-1])
-		#Ciclo para encontrar el numero de vertices de un poligono
+
+		#Ciclo para encontrar las uniones de cada uno de las caras
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
+				
 		filling_any_polygon(verticesCaras)
 
 def load_2(filename, translate=(0,0), scale=(1,1)):
