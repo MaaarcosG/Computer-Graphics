@@ -1,0 +1,215 @@
+# Universidad del Valle de Guatemala
+# Grafica por Computadora
+# Nombre: Marcos Gutierrez
+# Carne: 17909
+
+import struct
+import math
+from obj import *
+#Importamos la coleccion
+from collections import namedtuple
+
+#Variables globales
+ViewPort_X = None
+ViewPort_Y = None
+ViewPort_H = None
+ViewPort_W = None
+
+def char(c):
+	return struct.pack("=c",c.encode('ascii'))
+
+def word(c):
+	return struct.pack("=h",c)
+
+def dword(c):
+	return struct.pack("=l",c)
+
+def color(r,g,b):
+	return bytes([b,g,r])
+
+#Funcion definara el area de la imagen
+def glViewPort(x,y,width,height):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W
+	#variable View Port en el eje x
+	ViewPort_X = x
+	#variable View Port en el eje y
+	ViewPort_Y = y
+	#variable View Port del ancho de la imagen
+	ViewPort_H = height
+	#variable View Port de la altura
+	ViewPort_W = width
+
+#Transformar datos a normal
+def nor(n):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
+
+Negro = color(0,0,0)
+Blanco = color(255,255,255)
+#CLASE QUE GENERA ESCRITORIO DE IMAGEN
+class Bitmap(object):
+	#constructor de la clase
+	def __init__(self, width,height):
+		self.width = width
+		self.height = height
+		self.framebuffer = []
+		self.clearColor = Blanco
+		self.vertexColor = Blanco
+		self.clear()
+
+	def clear(self):
+		self.framebuffer = [[Negro for x  in range(self.width)] for y in range(self.height)]
+		self.zbuffer = [[-float('inf') for x in range(self.width)] for y in range(self.height)]
+
+	def write(self,filename="out.bmp"):
+		f = open(filename,'bw')
+		#file header (14)
+		f.write(char('B'))
+		f.write(char('M'))
+		f.write(dword(14 + 40 + self.width * self.height * 3))
+		f.write(dword(0))
+		f.write(dword(14 + 40))
+
+		#image header (40)
+		f.write(dword(40))
+		f.write(dword(self.width))
+		f.write(dword(self.height))
+		f.write(word(1))
+		f.write(word(24))
+		f.write(dword(0))
+		f.write(dword(0))
+		f.write(dword(self.width * self.height * 3))
+		f.write(dword(0))
+		f.write(dword(0))
+		f.write(dword(0))
+		f.write(dword(0))
+
+		for x in range(self.height):
+			for y in range(self.width):
+				f.write(self.framebuffer[x][y])
+		f.close()
+
+	def display(self, filename='out.bmp'):
+		self.write(filename)
+
+	def point(self, x, y):
+		self.framebuffer[y][x]= self.vertexColor
+
+	def glLine(self, vertex1, vertex2):
+		x1 = vertex1[0]
+		y1 = vertex1[1]
+		x2 = vertex2[0]
+		y2 = vertex2[1]
+		#--------# y = mx + b #--------#
+		#Valores en X
+		dx = abs(x2-x1)
+		#Valores en Y
+		dy = abs(y2-y1)
+		st = dy > dx
+		#Condicion cuando la pendiente es ---> (dy/0)
+		if dx == 0:
+			for y in range(y1, y2+1):
+				self.point(x1, y)
+			return 0
+		#Condicion para completar la linea
+		if(st):
+			x1,y1 = y1,x1
+			x2,y2 = y2,x2
+		if(x1>x2):
+			x1,x2 = x2,x1
+			y1,y2 = y2,y1
+		#Valores en X
+		dx = abs(x2-x1)
+		#Valores en Y
+		dy = abs(y2-y1)
+		llenar = 0
+		limite = dx
+		y = y1
+		#pendiente
+		#m = dy/dx
+		for x in range(x1,(x2+1)):
+			if (st):
+				self.point(y,x)
+			else:
+				self.point(x,y)
+			llenar += dy * 2
+			if llenar >= limite:
+				y += 1 if y1 < y2 else -1
+				limite += 2*dx
+
+	#Cargamos el archivo
+	def load(self,filename, translate=(0,0), scale=(1,1)):
+		#Abrimos el archivo
+		objeto = Obj(filename)
+
+		for cara in objeto.faces:
+			#Lista para guardar cada uno de los vertices
+			verticesCaras = []
+			for vertice in cara:
+				coordenadaVertice = nor(objeto.vertices[vertice-1])
+				#Vertices en x
+				vx = int((coordenadaVertice[0] + translate[0]) * scale[0])
+				#Vertices en y
+				vy = int((coordenadaVertice[1] + translate[1]) * scale[1])
+				coordenadaVertice = (vx,vy)
+				#Agragamos los vertices a la lista
+				verticesCaras.append(coordenadaVertice)
+
+			#numero de vertices dentro de la lista
+			nvertices = len(verticesCaras)
+			#La primera linea utlizando los vertices correctoss
+			self.glLine(verticesCaras[0], verticesCaras[-1])
+
+			#Ciclo para encontrar las uniones de cada uno de las caras
+			for i in range(nvertices-1):
+				if i  != nvertices:
+					self.glLine(verticesCaras[i], verticesCaras[i+1])
+
+			self.filling_any_polygon(verticesCaras)
+
+	#Rellenando cualquier poligono
+	def filling_any_polygon(self,vertices):
+		#global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+		#numero de vertices
+		nvertices = len(vertices)
+
+		#Calculando los Y maximos y minimos
+		ymax = sorted(vertices, key=lambda tup: tup[1], reverse=True)[0][1]
+		ymin = sorted(vertices, key=lambda tup: tup[1])[0][1]
+		#Calculamos los X maximo y minimos
+		xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
+		xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
+
+		#Lista de coordenadas
+		self.glLine(vertices[0], vertices[-1])
+
+		#Ciclo para encontrar el numero de vertices de un poligono
+		for i in range(nvertices-1):
+			if i  != nvertices:
+				self.glLine(vertices[i], vertices[i+1])
+
+		for x in range(xmin, xmax):
+			for y in range(ymin, ymax):
+				dentro = self.verificar_puntos(x,y,vertices)
+				if dentro:
+					self.point(x,y)
+
+	#Verificando cada uno de los puntos dentro de los poligonos
+	def verificar_puntos(self,x,y,vertices):
+		#Algoritmo obtenido de: http://www.eecs.umich.edu/courses/eecs380/HANDOUTS/PROJ2/InsidePoly.html
+		counter = 0
+		p1 = vertices[0]
+		n = len(vertices)
+		for i in range(n+1):
+			p2 = vertices[i % n]
+			if(y > min(p1[1], p2[1])):
+				if(y <= max(p1[1], p2[1])):
+					if(p1[1] != p2[1]):
+						intersecciones_x = (y-p1[1])*(p2[0]-p1[0])/(p2[1]-p1[1])+p1[0]
+						if(p1[0] == p2[0] or x <= intersecciones_x):
+							counter += 1
+			p1 = p2
+		if(counter % 2 == 0):
+			return False
+		else:
+			return True

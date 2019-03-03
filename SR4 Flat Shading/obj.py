@@ -3,7 +3,7 @@
 # Nombre: Marcos Gutierrez
 # Carne: 17909
 
-from bmp import *
+from bitmap import *
 
 class Obj(object):
 	def __init__(self,filename):
@@ -85,4 +85,4 @@ class Obj(object):
 					#self.vertice.append(list(map(float, value.split(' '))))
 
 				#elif prefix == 'f':
-					#self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])	
+					#self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
