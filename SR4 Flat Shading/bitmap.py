@@ -224,36 +224,26 @@ class Bitmap(object):
 				y += 1 if y1 < y2 else -1
 				limite += 2*dx
 
-	#Cargamos el archivo
-	def load(self,filename, translate=(0,0), scale=(1,1)):
-		#Abrimos el archivo
-		objeto = Obj(filename)
+	def load(self, filename, scale=(1, 1), translate=(0, 0)):
+		model = Obj(filename)
+		for face in model.faces:
+			vcount = len(face)
+			print(vcount)
+			for j in range(vcount):
+				f1 = face[j][0]
+				f2 = face[(j+1)%vcount][0]
+				v1 = model.vertices[f1 - 1]
+				v2 = model.vertices[f2 - 1]
 
-		for cara in objeto.faces:
-			#Lista para guardar cada uno de los vertices
-			verticesCaras = []
-			for vertice in cara:
-				coordenadaVertice = nor(objeto.vertices[vertice-1])
-				#Vertices en x
-				vx = int((coordenadaVertice[0] + translate[0]) * scale[0])
-				#Vertices en y
-				vy = int((coordenadaVertice[1] + translate[1]) * scale[1])
-				coordenadaVertice = (vx,vy)
-				#Agragamos los vertices a la lista
-				verticesCaras.append(coordenadaVertice)
+				scaleX, scaleY = scale
+				translateX, translateY = translate
 
-			#print(verticesCaras[])
-			#numero de vertices dentro de la lista
-			nvertices = len(verticesCaras)
-			#La primera linea utlizando los vertices correctoss
-			self.glLine(verticesCaras[0], verticesCaras[-1])
+				x1 = round((v1[0] + translateX) * scaleX);
+				y1 = round((v1[1] + translateY) * scaleY);
+				x2 = round((v2[0] + translateX) * scaleX);
+				y2 = round((v2[1] + translateY) * scaleY);
 
-			#Ciclo para encontrar las uniones de cada uno de las caras
-			for i in range(nvertices-1):
-				if i  != nvertices:
-					self.glLine(verticesCaras[i], verticesCaras[i+1])
-
-			#self.filling_any_polygon(verticesCaras)
+				self.glLine((x1, y1), (x2, y2))
 
 	#Rellenando cualquier poligono
 	def filling_any_polygon(self,vertices):

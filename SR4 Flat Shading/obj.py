@@ -3,8 +3,26 @@
 # Nombre: Marcos Gutierrez
 # Carne: 17909
 
-from bitmap import *
+class Obj(object):
+    def __init__(self, filename):
+        with open(filename) as f:
+            self.lines = f.read().splitlines()
+        self.vertices = []
+        self.faces = []
+        self.read()
 
+    def read(self):
+        for lineas in self.lines:
+            if lineas:
+                prefix, value = lineas.split(' ', 1)
+                if prefix == 'v':
+                    self.vertices.append(list(map(float, value.split(' '))))
+                elif prefix == 'f':
+                    self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
+
+"""
+from bitmap import *
+POR MOTIVO DE RENDERIZACION EL CODIGO PARA ABRIR EL OBJ LO TUVE QUE CAMIBAR Y UTILIZAR EL EJEMPLO DE LA CLASE
 class Obj(object):
 	def __init__(self,filename):
 		#with open(filename) as f:
@@ -44,21 +62,15 @@ class Obj(object):
 				#self.faces.append([list(map(int, face.split('/'))) for face in lineas[0].split(' ')])
 		#Cerramos el archivo
 		archivo.close()
-
-
-
-
-
-
+""""
 #-------- INTENTO CON SOLO UNA LINEA ----------#
 #vertice = []
 #lineas = 'v 0.376516 1.770015 -2.274176'
-#valor = lineas.strip().split(" ")
+#valor = lineas.split(" ")
 #valor_x = valor.pop(1)
 #valor_Y = valor.pop(2)
 #vertice.append((float(valor_x),float(valor_Y)))
 #print(vertice)
-
 
 #-------- INTENTO CON UN CICLO --------#
 #faces = []
@@ -70,19 +82,8 @@ class Obj(object):
 		#line.pop(0)
 		#face = []
 		#for i in line:
-			#i = i.split("/")
+			#i = i.split("//")
 			#face.append(int(i[0]))
 		#faces.append(face)
 	#print(faces)
 	#contador +=1
-
-#-------- EJEMPLO DE CLASE ---------#
-#for line in self.lines:
-			#if line:
-				#prefix,value = line.split(' ', 1)
-
-				#if prefix == 'v':
-					#self.vertice.append(list(map(float, value.split(' '))))
-
-				#elif prefix == 'f':
-					#self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
