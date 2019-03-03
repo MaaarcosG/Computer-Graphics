@@ -14,6 +14,15 @@ from collections import namedtuple
 v2 = namedtuple('Point2', ['x','y'])
 v3 = namedtuple('Point3', ['x','y','z'])
 
+#Variables globales
+windows = None
+filename = "out.bmp"
+ViewPort_X = None
+ViewPort_Y = None
+ViewPort_H = None
+ViewPort_W = None
+
+
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
 
@@ -25,15 +34,6 @@ def dword(c):
 
 def color(r,g,b):
 	return bytes([b,g,r])
-
-#Variables globales
-windows = None
-filename = "out.bmp"
-ViewPort_X = None
-ViewPort_Y = None
-ViewPort_H = None
-ViewPort_W = None
-
 
 def filename(name):
 	global filename
@@ -126,7 +126,6 @@ def longitud(v0):
 #Funcion para encontrar el vector normal
 def normal(v0):
 	lon = longitud(v0)
-
 	if not lon:
 		return v3(0,0,0)
 
@@ -158,32 +157,26 @@ def glLine(vertex1, vertex2):
 	dx = abs(x2-x1)
 	#Valores en Y
 	dy = abs(y2-y1)
-
 	st = dy > dx
 	#Condicion cuando la pendiente es ---> (dy/0)
 	if dx == 0:
 		for y in range(y1, y2+1):
 			windows.point(x1, y)
 		return 0
-
 	#Condicion para completar la linea
 	if(st):
 		x1,y1 = y1,x1
 		x2,y2 = y2,x2
-
 	if(x1>x2):
 		x1,x2 = x2,x1
 		y1,y2 = y2,y1
-
 	#Valores en X
 	dx = abs(x2-x1)
 	#Valores en Y
 	dy = abs(y2-y1)
-
 	llenar = 0
 	limite = dx
 	y = y1
-
 	#pendiente
 	#m = dy/dx
 	for x in range(x1,(x2+1)):
@@ -197,6 +190,7 @@ def glLine(vertex1, vertex2):
 			limite += 2*dx
 
 def load(filename, translate=(0,0), scale=(1,1)):
+	#Abrimos el archivo
 	objeto = Obj(filename)
 
 	for cara in objeto.faces:
@@ -221,44 +215,8 @@ def load(filename, translate=(0,0), scale=(1,1)):
 		for i in range(nvertices-1):
 			if i  != nvertices:
 				glLine(verticesCaras[i], verticesCaras[i+1])
-				
+
 		filling_any_polygon(verticesCaras)
-
-def load_2(filename, translate=(0,0), scale=(1,1)):
-	objeto = Obj(filename)
-	caras = objeto.faces
-	vertices = objeto.vertices
-
-	luz = v3(0,0,1)
-
-	for cara in caras:
-		contador = len(caras)
-		verticesCaras = []
-
-		for vertice in cara:
-
-			coordenadaVertice = nor(vertices[vertice-1])
-			a = int((coordenadaVertice[0] + translate[0]) * scale[0])
-			b = int((coordenadaVertice[1] + translate[1]) * scale[1])
-			c = int((coordenadaVertice[0] + translate[1]) * scale[1])
-			coordenadaVertice = (a,b,c)
-
-
-			verticesCaras.append(coordenadaVertice)
-
-		nvertices = len(verticesCaras)
-		glLine(verticesCaras[0], verticesCaras[-1])
-		#Ciclo para encontrar el numero de vertices de un poligono
-		for i in range(nvertices-1):
-			if i  != nvertices:
-				glLine(verticesCaras[i], verticesCaras[i+1])
-
-			print(verticesCaras[3])
-
-
-def nor(n):
-	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	return int(ViewPort_H * (n[0]+1) * (1/2) + ViewPort_X), int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_X)
 
 def filling_any_polygon(vertices):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
@@ -287,6 +245,7 @@ def filling_any_polygon(vertices):
 				windows.point(x,y)
 
 def verificar_puntos(x,y,vertices):
+	#Algoritmo obtenido de: http://www.eecs.umich.edu/courses/eecs380/HANDOUTS/PROJ2/InsidePoly.html
 	counter = 0
 	p1 = vertices[0]
 	n = len(vertices)
@@ -324,9 +283,9 @@ def triangle(self, A,B,C, color=None):
 
 		z = A.z * w + B.z * v + C.z * u
 
-		if z > self.zbuffer[x][y]:
+		if z > zbuffer[x][y]:
 			windows.point(x,y,color)
-			sel.zbuffer[x][y] = z
+			zbuffer[x][y] = z
 
 #Transformamos el vector
 def transform(vertex,translate=(0,0,0),scale=(1,1,1,)):
