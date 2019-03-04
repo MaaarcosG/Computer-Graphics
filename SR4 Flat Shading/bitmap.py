@@ -8,14 +8,16 @@ import math
 from obj import *
 #Importamos la coleccion
 from collections import namedtuple
-v2 = namedtuple('Point2', ['x', 'y'])
-v3 = namedtuple('Point3', ['x', 'y', 'z'])
 
 #Variables globales
 ViewPort_X = None
 ViewPort_Y = None
 ViewPort_H = None
 ViewPort_W = None
+
+v2 = namedtuple('Punto2', ['x', 'y'])
+v3 = namedtuple('Punto3', ['x', 'y', 'z'])
+
 
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
@@ -59,6 +61,9 @@ def mul(v0,k):
 
 	#retorna un vector nuevo con la multiplicacion a un escalar
 	return v3(px,py,pz)
+
+def dot(v0,v1):
+	return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
 
 #Funcion que encontrar un vector nuevo, utlizando algebra producto cruz
 def pCruz(v0,v1):
@@ -231,28 +236,100 @@ class Bitmap(object):
 			for j in range(vcount):
 				#Por cada cara se saca modulo para emparejamiento.
 				i = (j+1)%vcount
-
 				f1 = face[j][0]
 				f2 = face[i][0]
 				v1 = objeto.vertices[f1 - 1]
 				v2 = objeto.vertices[f2 - 1]
-
+				#Le damos un valor a las coordeadas
 				x1 = round((v1[0] + translate[0]) * scale[0]);
 				y1 = round((v1[1] + translate[1]) * scale[1]);
 				x2 = round((v2[0] + translate[0]) * scale[0]);
 				y2 = round((v2[1] + translate[1]) * scale[1]);
-
-
-
 				#Guardando las coordenadas en un lista
 				vertex = []
 				vertex.append(x1)
 				vertex.append(y1)
 				vertex.append(x2)
 				vertex.append(y2)
-
 				self.glLine((vertex[0],vertex[1]),(vertex[2],vertex[3]))
 
+	def triangulos(self,A,B,C, color=None):
+		b_min, b_max = bbox(A,B,C)
+
+		for x in range(b_min.x, b_max.x+1):
+			for y in range(b_min.y, b_max.y):
+				w, v, u = baricentricas(A,B,C, v2(x,y))
+				if  w < 0 or v < 0 or u < 0:
+					continue
+				z = A.z * w + B.z * v + C.z * u
+
+				if z > self.zbuffer[x][y]:
+					self.point(x,y,color)
+					self.zbuffer[x][y] = z
+
+	#Vector 3 transformado
+	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
+		p_x = round((vertex[0] + translate[0]) * scale[0])
+		p_y = round((vertex[1] + translate[1]) * scale[1])
+		p_z = round((vertex[2] + translate[2]) * scale[2])
+
+		return v3(p_x, p_y, p_z)
+
+	#Funcion para el zbuffer
+	def renderer(self, filename, scale=(1, 1), translate=(0, 0)):
+		objeto = Obj(filename)
+		#uz = v3(0,0,1)
+		for face in objeto.faces:
+			nvectores = len(face)
+
+
+			if nvectores == 3:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+
+				a = self.transform(objeto.vertices[f1],scale,translate)
+				b = self.transform(objeto.vertices[f2],scale,translate)
+				c = self.transform(objeto.vertices[f3],scale,translate)
+
+				#Luz
+				#luz = v3(0,0,1)
+				vector_normal = normal(pCruz(resta(b,a),resta(c,a)))
+				intensidad = dot(vector_normal,v3(0,0,1))
+				tono = round(255 * intensidad)
+				if tono<0:
+					continue
+
+				self.triangulos(a,b,c, color(tono,tono,tono))
+
+			else:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+				f4 = face[3][0] - 1
+
+				#Lista para cada vertices
+				list_vertice = []
+				v1 = self.transform(objeto.vertices[f1],scale,translate)
+				v2 = self.transform(objeto.vertices[f2],scale,translate)
+				v3 = self.transform(objeto.vertices[f3],scale,translate)
+				v4 = self.transform(objeto.vertices[f4],scale,translate)
+				#Añadimos las coordeadas
+				list_vertice.append(v1)
+				list_vertice.append(v2)
+				list_vertice.append(v3)
+				list_vertice.append(v4)
+
+				vector_normal = normal(pCruz(resta(list_vertice[0],list_vertice[1]),resta(list_vertice[1],list_vertice[2])))
+				intensidad = dot(vector_normal,v3(0,0,1))
+				tono = round(255 * intensidad)
+				if tono<0:
+					continue
+
+				A,B,C,D = list_vertice
+
+				self.triangulos(A,B,C, color(tono,tono,tono))
+				self.triangulos(A,C,D, color(tono,tono,tono))
 
 
 	#Rellenando cualquier poligono funciones utilizadas para el laboratorio No. 1
@@ -301,25 +378,3 @@ class Bitmap(object):
 			return False
 		else:
 			return True
-
-	def triangulos(self,A,B,C, color=None):
-		b_min, b_max = bbox(A,B,C)
-
-		for x in range(b_min.x, b_max.x+1):
-			for y in range(b_min.y, b_max.y):
-				w, v, u = baricentricas(A,B,C, v2(x,y))
-				if  w < 0 or v < 0 or u < 0:
-					continue
-				z = A.z * w + B.z * v + C.z * u
-
-				if z > self.zbuffer[x][y]:
-					self.point(x,y,color)
-					self.zbuffer[x][y] = z
-
-	#Vector 3 transformado
-	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
-		p_x = round((vertex[0] + translate[0]) * scale[0])
-		p_y = round((vertex[1] + translate[1]) * scale[1])
-		p_z = round((vertex[2] + translate[2]) * scale[2])
-
-		return v3(p_x, p_y, p_z)
