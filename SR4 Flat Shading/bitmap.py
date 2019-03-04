@@ -236,15 +236,26 @@ class Bitmap(object):
 				f2 = face[i][0]
 				v1 = objeto.vertices[f1 - 1]
 				v2 = objeto.vertices[f2 - 1]
-				
+
 				x1 = round((v1[0] + translate[0]) * scale[0]);
 				y1 = round((v1[1] + translate[1]) * scale[1]);
 				x2 = round((v2[0] + translate[0]) * scale[0]);
 				y2 = round((v2[1] + translate[1]) * scale[1]);
 
-				self.glLine((x1, y1), (x2, y2))
 
-	#Rellenando cualquier poligono
+
+				#Guardando las coordenadas en un lista
+				vertex = []
+				vertex.append(x1)
+				vertex.append(y1)
+				vertex.append(x2)
+				vertex.append(y2)
+
+				self.glLine((vertex[0],vertex[1]),(vertex[2],vertex[3]))
+
+
+
+	#Rellenando cualquier poligono funciones utilizadas para el laboratorio No. 1
 	def filling_any_polygon(self,vertices):
 		#global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
 		#numero de vertices
@@ -271,7 +282,7 @@ class Bitmap(object):
 				if dentro:
 					self.point(x,y)
 
-	#Verificando cada uno de los puntos dentro de los poligonos
+	#Verificando cada uno de los puntos dentro de los poligonos funciones utilizadas para el laboratorio No. 1
 	def verificar_puntos(self,x,y,vertices):
 		#Algoritmo obtenido de: http://www.eecs.umich.edu/courses/eecs380/HANDOUTS/PROJ2/InsidePoly.html
 		counter = 0
