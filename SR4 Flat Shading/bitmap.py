@@ -34,7 +34,7 @@ def color(r,g,b):
 #------ FUNCIONES PARA TRABJAR CON VECTORES DE LONGITUD 3 ------#
 
 #Suma de vectores
-def resta(v0,v1):
+def suma(v0,v1):
 	#Puntos en cada coordenadas
 	px = v0.x + v1.x
 	py = v0.y + v1.y
@@ -62,8 +62,8 @@ def mul(v0,k):
 	#retorna un vector nuevo con la multiplicacion a un escalar
 	return v3(px,py,pz)
 
-def dot(v0,v1):
-	return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+def dot(v0, v1):
+  return v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
 
 #Funcion que encontrar un vector nuevo, utlizando algebra producto cruz
 def pCruz(v0,v1):
@@ -77,14 +77,14 @@ def pCruz(v0,v1):
 
 #Funcion para la longitud del vector
 def longitud(v0):
-	px = v0.x
-	py = v0.y
-	pz = v0.z
+	px = v0.x ** 2
+	py = v0.y ** 2
+	pz = v0.z ** 2
 	#Suma de puntos
-	len = px+py+pz
+	len = (px+py+pz)**0.5
 	return len
 
-#Funcion para encontrar el vector normal
+#Funcion para encontrar el vector normalr
 def normal(v0):
 	v0Lon = longitud(v0)
 
@@ -100,22 +100,29 @@ def normal(v0):
 #Bounding Box
 def bbox(*vertices):
 	xs = [vertex.x for vertex in vertices]
-	xy = [vertex.y for vertex in vertices]
+	ys = [vertex.y for vertex in vertices]
 	xs.sort()
 	ys.sort()
 
 	p1 = xs[0], ys[0]
 	p2 = xs[-1], ys[-1]
-	return v2(p1), v2(p2)
+	return v2(xs[0], ys[0]), v2(xs[-1], ys[-1])
 
 #Funcion para encontrar las coordenadas barycentricas
 def baricentricas(A,B,C,P):
-	bcoor = pCruz((v3(C.x - A.x, B.x - A.x, A.x - P.x)),(v3(C.y - A.y, B.y - A.y, A.y - P.y)))
+	bcoor = pCruz(
+	v3(C.x - A.x, B.x - A.x, A.x - P.x),
+	v3(C.y - A.y, B.y - A.y, A.y - P.y)
+	)
 
-	if abs(bcoor[2] < 1):
+	if abs(bcoor.z) < 1:
 		return(-1,-1,-1)
 
-	return (1 - (bcoor[0] + bcoor[1]) / bcoor[2], bcoor[1] / bcoor[2], bcoor[0] / bcoor[2])
+	return (
+	1 - (bcoor.x + bcoor.y) / bcoor.z,
+	bcoor.y / bcoor.z,
+	bcoor.x / bcoor.z
+	)
 
 #Funcion definara el area de la imagen
 def glViewPort(x,y,width,height):
@@ -184,8 +191,8 @@ class Bitmap(object):
 	def archivo(self, filename='out.bmp'):
 		self.write(filename)
 
-	def point(self, x, y):
-		self.framebuffer[y][x]= self.vertexColor
+	def point(self, x, y,color=None):
+		self.framebuffer[y][x]= color or self.vertexColor 
 
 	def glLine(self, vertex1, vertex2):
 		x1 = vertex1[0]
@@ -231,15 +238,17 @@ class Bitmap(object):
 
 	def load(self, filename, scale=(1, 1), translate=(0, 0)):
 		objeto = Obj(filename)
-		for face in objeto.faces:
+		caras = objeto.faces
+		vertexes = objeto.vertices
+		for face in caras:
 			vcount = len(face)
 			for j in range(vcount):
 				#Por cada cara se saca modulo para emparejamiento.
 				i = (j+1)%vcount
 				f1 = face[j][0]
 				f2 = face[i][0]
-				v1 = objeto.vertices[f1 - 1]
-				v2 = objeto.vertices[f2 - 1]
+				v1 = vertexes[f1 - 1]
+				v2 = vertexes[f2 - 1]
 				#Le damos un valor a las coordeadas
 				x1 = round((v1[0] + translate[0]) * scale[0]);
 				y1 = round((v1[1] + translate[1]) * scale[1]);
@@ -261,6 +270,7 @@ class Bitmap(object):
 				w, v, u = baricentricas(A,B,C, v2(x,y))
 				if  w < 0 or v < 0 or u < 0:
 					continue
+
 				z = A.z * w + B.z * v + C.z * u
 
 				if z > self.zbuffer[x][y]:
@@ -274,63 +284,6 @@ class Bitmap(object):
 		p_z = round((vertex[2] + translate[2]) * scale[2])
 
 		return v3(p_x, p_y, p_z)
-
-	#Funcion para el zbuffer
-	def renderer(self, filename, scale=(1, 1), translate=(0, 0)):
-		objeto = Obj(filename)
-		#uz = v3(0,0,1)
-		for face in objeto.faces:
-			nvectores = len(face)
-
-
-			if nvectores == 3:
-				f1 = face[0][0] - 1
-				f2 = face[1][0] - 1
-				f3 = face[2][0] - 1
-
-				a = self.transform(objeto.vertices[f1],scale,translate)
-				b = self.transform(objeto.vertices[f2],scale,translate)
-				c = self.transform(objeto.vertices[f3],scale,translate)
-
-				#Luz
-				#luz = v3(0,0,1)
-				vector_normal = normal(pCruz(resta(b,a),resta(c,a)))
-				intensidad = dot(vector_normal,v3(0,0,1))
-				tono = round(255 * intensidad)
-				if tono<0:
-					continue
-
-				self.triangulos(a,b,c, color(tono,tono,tono))
-
-			else:
-				f1 = face[0][0] - 1
-				f2 = face[1][0] - 1
-				f3 = face[2][0] - 1
-				f4 = face[3][0] - 1
-
-				#Lista para cada vertices
-				list_vertice = []
-				v1 = self.transform(objeto.vertices[f1],scale,translate)
-				v2 = self.transform(objeto.vertices[f2],scale,translate)
-				v3 = self.transform(objeto.vertices[f3],scale,translate)
-				v4 = self.transform(objeto.vertices[f4],scale,translate)
-				#Añadimos las coordeadas
-				list_vertice.append(v1)
-				list_vertice.append(v2)
-				list_vertice.append(v3)
-				list_vertice.append(v4)
-
-				vector_normal = normal(pCruz(resta(list_vertice[0],list_vertice[1]),resta(list_vertice[1],list_vertice[2])))
-				intensidad = dot(vector_normal,v3(0,0,1))
-				tono = round(255 * intensidad)
-				if tono<0:
-					continue
-
-				A,B,C,D = list_vertice
-
-				self.triangulos(A,B,C, color(tono,tono,tono))
-				self.triangulos(A,C,D, color(tono,tono,tono))
-
 
 	#Rellenando cualquier poligono funciones utilizadas para el laboratorio No. 1
 	def filling_any_polygon(self,vertices):
@@ -378,3 +331,62 @@ class Bitmap(object):
 			return False
 		else:
 			return True
+
+	def renderer(self, filename, scale=(1, 1), translate=(0, 0)):
+		#Abrimos el archivo
+		objetos = Obj(filename)
+		luz = v3(0,0,1)
+
+		caras = objetos.faces
+		vertexes = objetos.vertices
+		for face in caras:
+			vcount = len(face)
+			if vcount == 3:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+
+				a = self.transform(vertexes[f1], translate, scale)
+				b = self.transform(vertexes[f2], translate, scale)
+				c = self.transform(vertexes[f3], translate, scale)
+
+				vector_normal = normal(pCruz(resta(b, a), resta(c, a)))
+				intensidad = dot(vector_normal, luz)
+				grey = round(255 * intensidad)
+
+				if grey < 0:
+					continue
+
+				self.triangulos(a, b, c, color(grey, grey, grey))
+			else:
+				# assuming 4
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+				f4 = face[3][0] - 1
+
+				lista_vertices = []
+				V1 = self.transform(vertexes[f1], translate, scale)
+				V2 = self.transform(vertexes[f2], translate, scale)
+				V3 = self.transform(vertexes[f3], translate, scale)
+				V4 = self.transform(vertexes[f4], translate, scale)
+
+				lista_vertices.append(V1)
+				lista_vertices.append(V2)
+				lista_vertices.append(V3)
+				lista_vertices.append(V4)
+
+				vector_normal = normal(pCruz(resta(lista_vertices[0], lista_vertices[1]), resta(lista_vertices[1], lista_vertices[2])))  # no necesitamos dos normales!!
+				intensidad = dot(vector_normal, luz)
+				grey = round(255 * intensidad)
+
+
+
+				if grey < 0:
+					continue # dont paint this face
+
+				A, B, C, D = lista_vertices
+
+				print(grey)
+				self.triangulos(A, B, C, color(grey, grey, grey))
+				self.triangulos(A, C, D, color(grey, grey, grey))
