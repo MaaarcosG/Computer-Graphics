@@ -189,7 +189,7 @@ def nor(n):
 	ny = int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_Y)
 	return nx, ny
 
-def filling_any_polygon(*vertices, color=None):
+def poligono(*vertices, color=None):
 	#numero de vertices
 	nvertices = len(vertices)
 	#Calculando los Y maximos y minimos
@@ -380,11 +380,11 @@ class Bitmap(object):
 				f2 = face[1][0] - 1
 				f3 = face[2][0] - 1
 
-				a = self.transform(vertexes[f1], translate, scale)
-				b = self.transform(vertexes[f2], translate, scale)
-				c = self.transform(vertexes[f3], translate, scale)
+				vector_1 = self.transform(vertexes[f1], translate, scale)
+				vector_2 = self.transform(vertexes[f2], translate, scale)
+				vector_3 = self.transform(vertexes[f3], translate, scale)
 
-				vector_normal = normal(pCruz(resta(b, a), resta(c, a)))
+				vector_normal = normal(pCruz(resta(vector_1, vector_2), resta(vector_3, vector_1)))
 				intensidad = dot(vector_normal, luz)
 				tonalidad = round(255 * intensidad)
 
@@ -392,7 +392,7 @@ class Bitmap(object):
 				if tonalidad < 0:
 					continue
 
-				self.triangulos(a, b, c, color(tonalidad, tonalidad, tonalidad))
+				self.triangulos(vector_1, vector_2, vector_3, color(tonalidad, tonalidad, tonalidad))
 			else:
 
 				f1 = face[0][0] - 1

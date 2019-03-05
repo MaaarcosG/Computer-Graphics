@@ -5,9 +5,9 @@ from bitmap import *
 # Carne: 17909
 
 def rellenando():
-	renderizando = Bitmap(800,800)
+	renderizando = Bitmap(1000,1000)
 	glViewPort(0,0,800,800)
-	renderizando.renderer('./modelos/test2.obj',(100,100,100),(4,3,3))
+	renderizando.renderer('./modelos/test3.obj',(100,100,100),(4,3,3))
 	renderizando.archivo('out.bmp')
 
 print("Renderizando los modelos obj")
