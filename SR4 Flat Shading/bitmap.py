@@ -108,6 +108,20 @@ def bbox(*vertices):
 	p2 = xs[-1], ys[-1]
 	return v2(xs[0], ys[0]), v2(xs[-1], ys[-1])
 
+#Rellenando cualquier poligono funciones utilizadas para el laboratorio No. 1
+def find_MaxMin(*vertices):
+	#Calculando los Y maximos y minimos
+	ymax = sorted(vertices, key=lambda tup: tup[1], reverse=True)[0][1]
+	ymin = sorted(vertices, key=lambda tup: tup[1])[0][1]
+	#Calculamos los X maximo y minimos
+	xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
+	xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
+
+	p1 = xmin, xmax
+	p2 = ymin, ymax
+
+	return v2(xmin,xmax), v2(ymin,ymax)
+
 #Funcion para encontrar las coordenadas barycentricas
 def baricentricas(A,B,C,P):
 	bcoor = pCruz(
@@ -135,6 +149,45 @@ def glViewPort(x,y,width,height):
 	ViewPort_H = height
 	#variable View Port de la altura
 	ViewPort_W = width
+
+#Funcion que limpiara
+def glClear():
+	global windows
+	#Llamo la funcion clear que se encuentra en la clase bitmap
+	windows.clear()
+
+#Funcion que limpiara el color
+def glClearColor(r,g,b):
+	global windows
+	#windows.clear(int(255*r),int(255*g),int(255*b))
+
+	#Se realiza la multiplicacion para llevar a otro color, FUNCION FLOOR, para aproximar al numero mas pequeño
+	R = int(math.floor(r * 255))
+	G = int(math.floor(g * 255))
+	B = int(math.floor(b * 255))
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
+	#print("Limpieza de color: %d, %d, %d" % (R,G,B))
+	windows.clearColor = color(R,G,B)
+
+#Funcion que cambie el color de un punto.
+def glVertex(x,y):
+	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
+
+	PortX = int((x+1) * ViewPort_W * (1/2) + ViewPort_X)
+	PortY = int((y+1) * ViewPort_H * (1/2) + ViewPort_Y)
+	#print('glVertex X: %d y %d' % (PortX,PortY))
+	windows.point(PortX,PortY)
+
+#Funcion para cambiar el color de la funcion glVertex
+def glColor(r,g,b):
+	global windows
+	#Se realiza la multiplicacion para llevar a otro color, FUNCION FLOOR, para aproximar al numero mas pequeño
+	R = int(math.floor(r * 255))
+	G = int(math.floor(g * 255))
+	B = int(math.floor(b * 255))
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
+	#print("Vertex Color: %d, %d, %d" % (R,G,B))
+	windows.vertexColor = color(R,G,B)
 
 #Transformar datos a normal
 def nor(n):
@@ -192,7 +245,7 @@ class Bitmap(object):
 		self.write(filename)
 
 	def point(self, x, y,color=None):
-		self.framebuffer[y][x]= color or self.vertexColor 
+		self.framebuffer[y][x]= color or self.vertexColor
 
 	def glLine(self, vertex1, vertex2):
 		x1 = vertex1[0]
@@ -245,11 +298,12 @@ class Bitmap(object):
 			for j in range(vcount):
 				#Por cada cara se saca modulo para emparejamiento.
 				i = (j+1)%vcount
+
 				f1 = face[j][0]
 				f2 = face[i][0]
 				v1 = vertexes[f1 - 1]
 				v2 = vertexes[f2 - 1]
-				#Le damos un valor a las coordeadas
+				#Le damos un valor a las coordeadas redondeadas
 				x1 = round((v1[0] + translate[0]) * scale[0]);
 				y1 = round((v1[1] + translate[1]) * scale[1]);
 				x2 = round((v2[0] + translate[0]) * scale[0]);
@@ -264,73 +318,29 @@ class Bitmap(object):
 
 	def triangulos(self,A,B,C, color=None):
 		b_min, b_max = bbox(A,B,C)
-
 		for x in range(b_min.x, b_max.x+1):
 			for y in range(b_min.y, b_max.y):
 				w, v, u = baricentricas(A,B,C, v2(x,y))
+				#Si los valores son negativos que continue sin nada
 				if  w < 0 or v < 0 or u < 0:
 					continue
 
+				#Encontramos el valor z
 				z = A.z * w + B.z * v + C.z * u
 
+				#Coloreando el objeto
 				if z > self.zbuffer[x][y]:
 					self.point(x,y,color)
 					self.zbuffer[x][y] = z
 
 	#Vector 3 transformado
 	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
-		p_x = round((vertex[0] + translate[0]) * scale[0])
-		p_y = round((vertex[1] + translate[1]) * scale[1])
-		p_z = round((vertex[2] + translate[2]) * scale[2])
+		#Transformando los datos
+		t1 = round((vertex[0] + translate[0]) * scale[0])
+		t2 = round((vertex[1] + translate[1]) * scale[1])
+		t3 = round((vertex[2] + translate[2]) * scale[2])
 
-		return v3(p_x, p_y, p_z)
-
-	#Rellenando cualquier poligono funciones utilizadas para el laboratorio No. 1
-	def filling_any_polygon(self,vertices):
-		#global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-		#numero de vertices
-		nvertices = len(vertices)
-
-		#Calculando los Y maximos y minimos
-		ymax = sorted(vertices, key=lambda tup: tup[1], reverse=True)[0][1]
-		ymin = sorted(vertices, key=lambda tup: tup[1])[0][1]
-		#Calculamos los X maximo y minimos
-		xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
-		xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
-
-		#Lista de coordenadas
-		self.glLine(vertices[0], vertices[-1])
-
-		#Ciclo para encontrar el numero de vertices de un poligono
-		for i in range(nvertices-1):
-			if i  != nvertices:
-				self.glLine(vertices[i], vertices[i+1])
-
-		for x in range(xmin, xmax):
-			for y in range(ymin, ymax):
-				dentro = self.verificar_puntos(x,y,vertices)
-				if dentro:
-					self.point(x,y)
-
-	#Verificando cada uno de los puntos dentro de los poligonos funciones utilizadas para el laboratorio No. 1
-	def verificar_puntos(self,x,y,vertices):
-		#Algoritmo obtenido de: http://www.eecs.umich.edu/courses/eecs380/HANDOUTS/PROJ2/InsidePoly.html
-		counter = 0
-		p1 = vertices[0]
-		n = len(vertices)
-		for i in range(n+1):
-			p2 = vertices[i % n]
-			if(y > min(p1[1], p2[1])):
-				if(y <= max(p1[1], p2[1])):
-					if(p1[1] != p2[1]):
-						intersecciones_x = (y-p1[1])*(p2[0]-p1[0])/(p2[1]-p1[1])+p1[0]
-						if(p1[0] == p2[0] or x <= intersecciones_x):
-							counter += 1
-			p1 = p2
-		if(counter % 2 == 0):
-			return False
-		else:
-			return True
+		return v3(t1,t2,t3)
 
 	def renderer(self, filename, scale=(1, 1), translate=(0, 0)):
 		#Abrimos el archivo
@@ -352,14 +362,15 @@ class Bitmap(object):
 
 				vector_normal = normal(pCruz(resta(b, a), resta(c, a)))
 				intensidad = dot(vector_normal, luz)
-				grey = round(255 * intensidad)
+				tonalidad = round(255 * intensidad)
 
-				if grey < 0:
+				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
+				if tonalidad < 0:
 					continue
 
-				self.triangulos(a, b, c, color(grey, grey, grey))
+				self.triangulos(a, b, c, color(tonalidad, tonalidad, tonalidad))
 			else:
-				# assuming 4
+
 				f1 = face[0][0] - 1
 				f2 = face[1][0] - 1
 				f3 = face[2][0] - 1
@@ -378,15 +389,11 @@ class Bitmap(object):
 
 				vector_normal = normal(pCruz(resta(lista_vertices[0], lista_vertices[1]), resta(lista_vertices[1], lista_vertices[2])))  # no necesitamos dos normales!!
 				intensidad = dot(vector_normal, luz)
-				grey = round(255 * intensidad)
+				tonalidad = round(255 * intensidad)
 
+				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
+				if tonalidad < 0:
+					continue
 
-
-				if grey < 0:
-					continue # dont paint this face
-
-				A, B, C, D = lista_vertices
-
-				print(grey)
-				self.triangulos(A, B, C, color(grey, grey, grey))
-				self.triangulos(A, C, D, color(grey, grey, grey))
+				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))

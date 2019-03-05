@@ -1,9 +1,14 @@
 from bitmap import *
+# Universidad del Valle de Guatemala
+# Grafica por Computadora
+# Nombre: Marcos Gutierrez
+# Carne: 17909
 
 def rellenando():
-	rellenando = Bitmap(800,800)
+	renderizando = Bitmap(800,800)
 	glViewPort(0,0,800,800)
-	rellenando.renderer('./modelos/test2.obj',(100,100,100),(4,3,3))
-	rellenando.archivo('out.bmp')
+	renderizando.renderer('./modelos/test2.obj',(100,100,100),(4,3,3))
+	renderizando.archivo('out.bmp')
 
+print("Renderizando los modelos obj")
 print(rellenando())
