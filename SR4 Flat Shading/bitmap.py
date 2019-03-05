@@ -124,19 +124,12 @@ def find_MaxMin(*vertices):
 
 #Funcion para encontrar las coordenadas barycentricas
 def baricentricas(A,B,C,P):
-	bcoor = pCruz(
-	v3(C.x - A.x, B.x - A.x, A.x - P.x),
-	v3(C.y - A.y, B.y - A.y, A.y - P.y)
-	)
+	bcoor = pCruz(v3(C.x - A.x, B.x - A.x, A.x - P.x), v3(C.y - A.y, B.y - A.y, A.y - P.y))
 
 	if abs(bcoor.z) < 1:
 		return(-1,-1,-1)
 
-	return (
-	1 - (bcoor.x + bcoor.y) / bcoor.z,
-	bcoor.y / bcoor.z,
-	bcoor.x / bcoor.z
-	)
+	return (1 - (bcoor.x + bcoor.y) / bcoor.z, bcoor.y / bcoor.z, bcoor.x / bcoor.z)
 
 #Funcion definara el area de la imagen
 def glViewPort(x,y,width,height):
