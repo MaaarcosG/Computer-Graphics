@@ -18,7 +18,7 @@ class Obj(object):
                 if prefix == 'v':
                     self.vertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
-                    self.faces.append([list(map(int, face.split('//'))) for face in value.split(' ')])
+                    self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
 
 """
 from bitmap import *
