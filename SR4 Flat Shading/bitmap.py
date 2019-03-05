@@ -189,6 +189,37 @@ def nor(n):
 	ny = int(ViewPort_H * (n[1]+1) * (1/2) + ViewPort_Y)
 	return nx, ny
 
+def filling_any_polygon(*vertices, color=None):
+	#numero de vertices
+	nvertices = len(vertices)
+	#Calculando los Y maximos y minimos
+	ymax = sorted(vertices, key=lambda tup: tup[1], reverse=True)[0][1]
+	ymin = sorted(vertices, key=lambda tup: tup[1])[0][1]
+	#Calculamos los X maximo y minimos
+	xmin = sorted(vertices, key=lambda tup: tup[0])[0][0]
+	xmax = sorted(vertices, key=lambda tup: tup[0], reverse=True)[0][0]
+
+	#Lista de coordenadas
+	self.glLine(vertices[0], vertices[-1])
+	#Ciclo para encontrar el numero de vertices de un poligono
+	for i in range(nvertices-1):
+		if i  != nvertices:
+			self.glLine(vertices[i], vertices[i+1])
+
+	for x in range(xmin, xmax):
+		for y in range(ymin, ymax):
+			w,v,u = baricentricas(A,B,C, v2(x,y))
+			if  w < 0 or v < 0 or u < 0:
+				continue
+
+			#Encontramos el valor z
+			z = A.z * w + B.z * v + C.z * u
+
+			#Coloreando el objeto
+			if z > self.zbuffer[x][y]:
+				self.point(x,y,color)
+				self.zbuffer[x][y] = z
+
 Negro = color(0,0,0)
 Blanco = color(255,255,255)
 #CLASE QUE GENERA ESCRITORIO DE IMAGEN
@@ -388,5 +419,8 @@ class Bitmap(object):
 				if tonalidad < 0:
 					continue
 
-				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
-				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+				#self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				#self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+
+				self.filling_any_polygon(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				self.filling_any_polygon(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
