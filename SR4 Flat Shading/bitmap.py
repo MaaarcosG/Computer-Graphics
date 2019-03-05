@@ -419,8 +419,8 @@ class Bitmap(object):
 				if tonalidad < 0:
 					continue
 
-				#self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
-				#self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
 
-				self.filling_any_polygon(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
-				self.filling_any_polygon(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+				#self.filling_any_polygon(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				#self.filling_any_polygon(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
