@@ -422,11 +422,3 @@ class Bitmap(object):
 
 				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
-
-
-
-	def load_mtl(self, filename, scale=(1, 1), translate=(0, 0)):
-		colores = Mtl(filename)
-		kd = colores.kd
-
-		print(kd)

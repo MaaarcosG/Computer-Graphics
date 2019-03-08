@@ -37,6 +37,7 @@ class Mtl(object):
                 if prefix == 'Kd' :
                     self.kd.append(list(map(float, valor.split(' '))))
 
+        print(self.kd[0])
 
 
 """
