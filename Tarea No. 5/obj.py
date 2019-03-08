@@ -18,7 +18,26 @@ class Obj(object):
                 if prefix == 'v':
                     self.vertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
-                    self.faces.append([list(map(int, face.split('//'))) for face in value.split(' ')])
+                    self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
+
+#Clase que abre y guarda dentro de una lista los valores de kd
+class Mtl(object):
+    def __init__(self, filename):
+        with open(filename) as f:
+            self.lines = f.read().splitlines()
+        self.ka = []
+        self.kd = []
+        self.ke = []
+        self.read()
+
+    def read(self):
+        for lineas in self.lines:
+            if lineas:
+                prefix, valor = lineas.split(' ', 1)
+                if prefix == 'Kd' :
+                    self.kd.append(list(map(float, valor.split(' '))))
+
+
 
 """
 from bitmap import *
