@@ -358,6 +358,7 @@ class Bitmap(object):
 					self.point(x,y,color)
 					self.zbuffer[x][y] = z
 
+
 	#Vector 3 transformado
 	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
 		#Transformando los datos
@@ -368,6 +369,62 @@ class Bitmap(object):
 		return v3(t1,t2,t3)
 
 	def renderer(self, filename, scale=(1, 1), translate=(0, 0)):
+		#Abrimos el archivo
+		objetos = Obj(filename)
+		luz = v3(0,0,1)
+
+		caras = objetos.faces
+		vertexes = objetos.vertices
+		for face in caras:
+			vcount = len(face)
+			if vcount == 3:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+
+				vector_1 = self.transform(vertexes[f1], translate, scale)
+				vector_2 = self.transform(vertexes[f2], translate, scale)
+				vector_3 = self.transform(vertexes[f3], translate, scale)
+
+				vector_normal = normal(pCruz(resta(vector_1, vector_2), resta(vector_3, vector_1)))
+				intensidad = dot(vector_normal, luz)
+				tonalidad = round(255 * intensidad)
+
+				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
+				if tonalidad < 0:
+					continue
+
+				self.triangulos(vector_1, vector_2, vector_3, color(tonalidad, tonalidad, tonalidad))
+			else:
+
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+				f4 = face[3][0] - 1
+
+				lista_vertices = []
+				V1 = self.transform(vertexes[f1], translate, scale)
+				V2 = self.transform(vertexes[f2], translate, scale)
+				V3 = self.transform(vertexes[f3], translate, scale)
+				V4 = self.transform(vertexes[f4], translate, scale)
+
+				lista_vertices.append(V1)
+				lista_vertices.append(V2)
+				lista_vertices.append(V3)
+				lista_vertices.append(V4)
+
+				vector_normal = normal(pCruz(resta(lista_vertices[0], lista_vertices[1]), resta(lista_vertices[1], lista_vertices[2])))  # no necesitamos dos normales!!
+				intensidad = dot(vector_normal, luz)
+				tonalidad = round(255 * intensidad)
+
+				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
+				if tonalidad < 0:
+					continue
+
+				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
+				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+
+	def renderer_color(self, filename, scale=(1, 1), translate=(0, 0)):
 		#Abrimos el archivo
 		objetos = Obj(filename)
 		luz = v3(0,0,1)

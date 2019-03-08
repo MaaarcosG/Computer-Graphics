@@ -28,6 +28,7 @@ class Mtl(object):
         self.ka = []
         self.kd = []
         self.ke = []
+        self.materiales =[]
         self.read()
 
     def read(self):
@@ -37,7 +38,9 @@ class Mtl(object):
                 if prefix == 'Kd' :
                     self.kd.append(list(map(float, valor.split(' '))))
 
-        print(self.kd[0])
+                if prefix == 'newmtl':
+                    self.nombre.append(list(valor.split(' ')))
+
 
 
 """
