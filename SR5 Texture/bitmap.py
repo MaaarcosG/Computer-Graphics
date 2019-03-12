@@ -437,7 +437,7 @@ class Bitmap(object):
 				#self.filling_any_polygon(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				#self.filling_any_polygon(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
 
-	def texture(self, filename, texture=None, translate=(0,0,0), scale=(1,1,1)):
+	def texture(self, filename, translate=(0,0,0), scale=(1,1,1),  texture=None):
 		#Abrimos el archivo
 		objetos = Obj(filename)
 		caras = objetos.faces

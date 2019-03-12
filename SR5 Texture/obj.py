@@ -25,11 +25,10 @@ class Obj(object):
                 if prefix == 'v':
                     self.vertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'vt':
-                    self.vt.append(list(map(floar, value.split(' '))))
+                    self.vt.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
                     self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
 
-#Clase que sirve, para obtener las texturas de un archivo bmp
 class Texture(object):
 	def __init__(self, path):
 		self.path = path
@@ -62,7 +61,7 @@ class Texture(object):
 
 	def get_Color(self, tx, ty, intensity=1):
 		x = int(tx * self.width)
-		y = int(ty * self.heigt)
+		y = int(ty * self.height)
 
 		return bytes(map(lambda b: round(b*intensity) if b * intensity > 0 else 0, self.framebuffer[y][x]))
 
