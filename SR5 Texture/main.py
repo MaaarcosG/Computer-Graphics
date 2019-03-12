@@ -1,4 +1,5 @@
 from bitmap import *
+from obj import *
 # Universidad del Valle de Guatemala
 # Grafica por Computadora
 # Nombre: Marcos Gutierrez
@@ -7,9 +8,11 @@ from bitmap import *
 def reyBoo():
 	renderizando = Bitmap(1000,1000)
 	glViewPort(0,0,800,800)
+
+	t = Texture('./modelos/earth.bmp')
 	#renderizando.renderer(./modelos/test3.obj, scale=(0,0,0), translate=(0,0,0))
-	renderizando.renderer('./modelos/reyBoo.obj',(200,200,200),(3,3,3))
-	renderizando.archivo('reyBoo_Renderizado.bmp')
+	renderizando.texture('./modelos/earth.obj',(800,600,0), (0.5,0.5,1), texture=t)
+	renderizando.archivo('tierra.bmp')
 
 print("Renderizando los modelos obj")
 

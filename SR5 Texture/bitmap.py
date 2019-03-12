@@ -342,7 +342,7 @@ class Bitmap(object):
 				vertex.append(y2)
 				self.glLine((vertex[0],vertex[1]),(vertex[2],vertex[3]))
 
-	def triangulos(self,A,B,C, color=None):
+	def triangulos(self,A,B,C, color=None, texture=None, cT =(), intensidad = 1):
 		b_min, b_max = bbox(A,B,C)
 		for x in range(b_min.x, b_max.x+1):
 			for y in range(b_min.y, b_max.y):
@@ -351,13 +351,23 @@ class Bitmap(object):
 				if  w < 0 or v < 0 or u < 0:
 					continue
 
+				if texture:
+					tA, tB, tC = cT
+
+					texture_x = tA.x * w + tB.x * v + tC.x * u
+					texture_y = tA.y * w + tB.y * v + tC.y * u
+
+					color = texture.get_color(texture_x,texture_y,intensidad)
 				#Encontramos el valor z
 				z = A.z * w + B.z * v + C.z * u
-
+				if x <0 or y<0:
+					continue
 				#Coloreando el objeto
-				if z > self.zbuffer[x][y]:
+				if x <len(self.zbuffer) and y<len(self.zbuffer) and z > self.zbuffer[x][y]:
 					self.point(x,y,color)
 					self.zbuffer[x][y] = z
+
+
 
 	#Vector 3 transformado
 	def transform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
@@ -374,7 +384,7 @@ class Bitmap(object):
 		caras = objetos.faces
 		vertexes = objetos.vertices
 		luz = v3(0,0,1)
-		
+
 		for face in caras:
 			vcount = len(face)
 			if vcount == 3:
@@ -426,3 +436,82 @@ class Bitmap(object):
 
 				#self.filling_any_polygon(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				#self.filling_any_polygon(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+
+	def texture(self, filename, texture=None, translate=(0,0,0), scale=(1,1,1)):
+		#Abrimos el archivo
+		objetos = Obj(filename)
+		caras = objetos.faces
+		vertexes = objetos.vertices
+		vt = objetos.vt
+		luz = v3(0,0,1)
+
+		for face in caras:
+			vcount = len(face)
+			if vcount == 3:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+
+				vector_1 = self.transform(vertexes[f1], translate, scale)
+				vector_2 = self.transform(vertexes[f2], translate, scale)
+				vector_3 = self.transform(vertexes[f3], translate, scale)
+
+				vector_normal = normal(pCruz(resta(vector_1, vector_2), resta(vector_3, vector_1)))
+				intensidad = dot(vector_normal, luz)
+
+				if not texture:
+					tonalidad = round(255 * intensidad)
+					if tonalidad < 0:
+						continue
+					self.triangulos(vector_1,vector_2,vector_3, color=color(tonalidad,tonalidad,tonalidad))
+				else:
+					vTexture1 = face[0][0] - 1
+					vTexture2 = face[1][0] - 1
+					vTexture3 = face[2][0] - 1
+
+					texture_A = v3(*vt[vTexture1])
+					texture_B = v3(*vt[vTexture2])
+					texture_C = v3(*vt[vTexture3])
+
+					self.triangulos(vector_1,vector_2,vector_3, texture=texture, cT =(texture_A,texture_B,texture_C), intensidad=intensidad)
+			else:
+				f1 = face[0][0] - 1
+				f2 = face[1][0] - 1
+				f3 = face[2][0] - 1
+				f4 = face[3][0] - 1
+
+				lista_vertices = []
+				V1 = self.transform(vertexes[f1], translate, scale)
+				V2 = self.transform(vertexes[f2], translate, scale)
+				V3 = self.transform(vertexes[f3], translate, scale)
+				V4 = self.transform(vertexes[f4], translate, scale)
+
+				lista_vertices.append(V1)
+				lista_vertices.append(V2)
+				lista_vertices.append(V3)
+				lista_vertices.append(V4)
+
+				vector_normal = normal(pCruz(resta(lista_vertices[0], lista_vertices[1]), resta(lista_vertices[1], lista_vertices[2])))  # no necesitamos dos normales!!
+				intensidad = dot(vector_normal, luz)
+				tonalidad = round(255 * intensidad)
+
+				if not texture:
+					tonalidad = round(255*intensidad)
+					#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
+					if tonalidad < 0:
+						continue
+					self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad,tonalidad,tonalidad))
+					self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad,tonalidad,tonalidad))
+				else:
+					vTexture1 = face[0][0] - 1
+					vTexture2 = face[1][0] - 1
+					vTexture3 = face[2][0] - 1
+					vTexture4 = face[3][0] - 1
+
+					texture_A = v3(*vt[vTexture1])
+					texture_B = v3(*vt[vTexture2])
+					texture_C = v3(*vt[vTexture3])
+					texture_D = v3(*vt[vTexture4])
+
+					self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], texture=texture, cT =(texture_A,texture_B,texture_C), intensidad=intensidad)
+					self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], texture=texture, cT =(texture_A,texture_C,texture_D), intensidad=intensidad)
