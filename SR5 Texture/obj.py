@@ -4,12 +4,23 @@
 # Carne: 17909
 
 class Obj(object):
-    def __init__(self, filename):
+    def __init__(self, filename, filename_materials=None):
+
+        #Abrimos el archivo mtl
         with open(filename) as f:
             self.lines = f.read().splitlines()
+
+        #Abrimos el archivo mtl
+        with open(filename_materials) as leer:
+            self.materials = leer.read().splitlines()
+
         self.vertices = []
         self.faces = []
+        self.kd = []
+        self.keyMaterials = []
+        self.nameOf_Mersh = ''
         self.read()
+        self.Mtl()
 
     def read(self):
         for lineas in self.lines:
@@ -19,28 +30,20 @@ class Obj(object):
                     self.vertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
                     self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
+                #Si encuentra el nombre de cada uno de las figuras en el obj, que lo guarde en la variable value para comparacion
+                elif prefix == 'usemtl':
+                    self.nameOf_Mersh = value
 
-#Clase que abre y guarda dentro de una lista los valores de kd
-class Mtl(object):
-    def __init__(self, filename):
-        with open(filename) as f:
-            self.lines = f.read().splitlines()
-        self.ka = []
-        self.kd = []
-        self.ke = []
-        self.materiales =[]
-        self.read()
-
-    def read(self):
-        for lineas in self.lines:
+    def Mtl(self):
+        for lineas in self.materials:
             if lineas:
                 prefix, valor = lineas.split(' ', 1)
-                if prefix == 'Kd' :
-                    self.kd.append(list(map(float, valor.split(' '))))
-
+                #Nombre de los objetos
                 if prefix == 'newmtl':
-                    self.nombre.append(list(valor.split(' ')))
-
+                    self.keyMaterials.append(valor)
+                #Valores de los colores de difusion
+                if prefix == 'Kd':
+                    self.kd.append([list(map(float, valor.split(' ')))])
 
 
 """

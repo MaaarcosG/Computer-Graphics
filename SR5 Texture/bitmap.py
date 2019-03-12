@@ -424,13 +424,16 @@ class Bitmap(object):
 				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
 
-	def renderer_color(self, filename, scale=(1, 1), translate=(0, 0)):
+	def renderer_color(self, filename, filename_materials=None, scale=(1, 1), translate=(0, 0)):
 		#Abrimos el archivo
-		objetos = Obj(filename)
+		objetos = Obj(filename, filename_materials)
 		luz = v3(0,0,1)
-
 		caras = objetos.faces
 		vertexes = objetos.vertices
+
+		#Imprimimos los valores de kd, debug
+		#print (objetos.kd)
+
 		for face in caras:
 			vcount = len(face)
 			if vcount == 3:
@@ -445,6 +448,21 @@ class Bitmap(object):
 				vector_normal = normal(pCruz(resta(vector_1, vector_2), resta(vector_3, vector_1)))
 				intensidad = dot(vector_normal, luz)
 				tonalidad = round(255 * intensidad)
+
+				#Condicion para poner el color, dependiendo del archivo mtl
+				if filename_materials:
+					material_nombre = face[2]
+
+
+					if intensidad < 0:
+						continue
+
+					c1 = round(colores[0]*255*intensidad)
+					c2 = round(colores[1]*255*intensidad)
+					c3 = round(colores[2]*255*intensidad)
+
+					self.triangulos(vector_1,vector_2,vector_3, color(c1,c2,c3))
+
 
 				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
 				if tonalidad < 0:
@@ -473,9 +491,27 @@ class Bitmap(object):
 				intensidad = dot(vector_normal, luz)
 				tonalidad = round(255 * intensidad)
 
+				#Condicion para poner el color, dependiendo del archivo mtl
+				if filename_materials:
+					material_nombre = face[3]
+
+
+
+					if intensidad < 0:
+						continue
+
+					c1 = round(colores[0]*255*intensidad)
+					c2 = round(colores[1]*255*intensidad)
+					c3 = round(colores[2]*255*intensidad)
+
+					self.triangulos(vector_1,vector_2,vector_3, color(c1,c2,c3))
+
+
 				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
 				if tonalidad < 0:
 					continue
 
 				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+
+#Agregar una lista de los vertices x1
