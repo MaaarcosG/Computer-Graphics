@@ -4,23 +4,12 @@
 # Carne: 17909
 
 class Obj(object):
-    def __init__(self, filename, filename_materials=None):
-
-        #Abrimos el archivo mtl
+    def __init__(self, filename):
         with open(filename) as f:
             self.lines = f.read().splitlines()
-
-        #Abrimos el archivo mtl
-        with open(filename_materials) as leer:
-            self.materials = leer.read().splitlines()
-
         self.vertices = []
         self.faces = []
-        self.kd = []
-        self.keyMaterials = []
-        self.nameOf_Mersh = ''
         self.read()
-        self.Mtl()
 
     def read(self):
         for lineas in self.lines:
@@ -30,21 +19,6 @@ class Obj(object):
                     self.vertices.append(list(map(float, value.split(' '))))
                 elif prefix == 'f':
                     self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
-                #Si encuentra el nombre de cada uno de las figuras en el obj, que lo guarde en la variable value para comparacion
-                elif prefix == 'usemtl':
-                    self.nameOf_Mersh = value
-
-    def Mtl(self):
-        for lineas in self.materials:
-            if lineas:
-                prefix, valor = lineas.split(' ', 1)
-                #Nombre de los objetos
-                if prefix == 'newmtl':
-                    self.keyMaterials.append(valor)
-                #Valores de los colores de difusion
-                if prefix == 'Kd':
-                    self.kd.append([list(map(float, valor.split(' ')))])
-
 
 """
 from bitmap import *
