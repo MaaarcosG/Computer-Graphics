@@ -9,12 +9,15 @@ def texturas():
 	renderizando = Bitmap(1000,1000)
 	glViewPort(0,0,800,800)
 
-	t = Texture2('./modelos/earth.bmp')
+	t = Texture('./models/model.bmp')
+
 	#renderizando.renderer(./modelos/test3.obj, scale=(0,0,0), translate=(0,0,0))
-	renderizando.texture('./modelos/earth.obj',(800,800,0),(0.5,0.5,1), texture=t)
+	#renderizando.renderer('./models/model.obj', (200,200,200),(3,3,3))
+	renderizando.texture('./models/model.obj',(1, 1, 1), (300, 300, 300), texture=t)
 	renderizando.archivo('tierra.bmp')
 
 print("Renderizando los modelos obj")
 
 print("Renderizando Modelo de blender")
 print(texturas())
+5
