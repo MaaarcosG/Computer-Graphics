@@ -1,17 +1,18 @@
-from bitmap import *
+from bmp import *
+from obj import *
+from math import *
+from collections import namedtuple
+
 # Universidad del Valle de Guatemala
 # Grafica por Computadora
 # Nombre: Marcos Gutierrez
 # Carne: 17909
 
-def reyBoo():
-	renderizando = Bitmap(1000,1000)
-	glViewPort(0,0,800,800)
-	#renderizando.renderer(./modelos/test3.obj, scale=(0,0,0), translate=(0,0,0))
-	renderizando.renderer('./modelos/reyBoo.obj',(200,200,200),(3,3,3))
-	renderizando.archivo('reyBoo_Renderizado.bmp')
+def renderer():
+	renderer = Bitmap(1200,1200)
+	tex = Texture('./modelos/goku.bmp')
+	renderer.load('./modelos/goku.obj', mtlFile=None, translate=(0.1,-0.5,0), scale=(2,2,2), rotate=(0.2,-0.3,0), ojo=V3(0,-0.2,1), arriba=V3(0,1,0), centro=V3(0,0,0), texture=tex)
+	renderer.archivo('goku.bmp')
 
-print("Renderizando los modelos obj")
-
-print("Renderizando Modelo de blender")
-print(reyBoo())
+#Imprimimos las funciones realizadas
+renderer()
