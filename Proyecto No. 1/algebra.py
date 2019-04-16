@@ -11,28 +11,8 @@ import numpy
 from collections import namedtuple
 
 #Vectores necesarios
-class V3(object):
-  def __init__(self, x, y = None, z = None):
-    if (type(x) == numpy.matrix):
-      self.x, self.y, self.z = x.tolist()[0]
-    else:
-      self.x = x
-      self.y = y
-      self.z = z
-
-  def __repr__(self):
-    return "V3(%s, %s, %s)" % (self.x, self.y, self.z)
-
-class V2(object):
-  def __init__(self, x, y = None):
-    if (type(x) == numpy.matrix):
-      self.x, self.y = x.tolist()[0]
-    else:
-      self.x = x
-      self.y = y
-
-  def __repr__(self):
-    return "V2(%s, %s)" % (self.x, self.y)
+V2 = namedtuple('Punto2', ['x', 'y'])
+V3 = namedtuple('Punto3', ['x', 'y', 'z'])
 
 #----------Funciones necesarios para trabajar en opengl--------#
 def char(c):
@@ -135,3 +115,40 @@ def baricentricas(A,B,C,P):
 		return(-1,-1,-1)
 
 	return (1 - (bcoor.x + bcoor.y) / bcoor.z, bcoor.y / bcoor.z, bcoor.x / bcoor.z)
+
+#------ FUNCIONES PARA TRABJAR CON MATRICES ------#
+# matriz uno = m1
+# matriz dos = m2
+
+#Comprobando teorema para crear una multiplicacion
+def teorema(filas, columna):
+	matriz = []
+	for i in range(filas):
+		#Añadimos una lista vacia
+		matriz.append([])
+		for j in range(columna):
+			matriz[-1].append(0.0)
+	#Retornamos la matriz creada
+	return matriz
+
+#Funcion para multiplicar las matrices
+def multiplicarMatrices(m1,m2):
+	#Condicion para multiplicar matrices es que el numero de columnas de una matriz debe ser el mismo que el numero de filas en la otra matriz
+	#Las matrices deben de tener la misma longitud (2x2 * 2x2).... (4x4 * 4x4)
+	#Basado en: https://www.geeksforgeeks.org/c-program-multiply-two-matrices/
+	"""
+		MATRIZ 1			MATRIZ 2
+	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
+	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
+	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
+	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
+	"""
+	matrizResultante = teorema(len(m1), len(m2[0]))
+	for i in range(len(m1)):
+		#Creamos la matriz
+		for j in range(len(m2[0])):
+			for k in range(len(m2)):
+				#damos valores a la matriz resultante
+				matrizResultante[i][j] += m1[i][k] * m2[k][j]
+	#retornmaos los resultados de la matriz
+	return matrizResultante

@@ -14,11 +14,7 @@ class Bitmap(object):
         self.height = height
         self.vertexColor = color(255,255,255)
         self.clear()
-        #inicializamos las variables que serviran para el renderizado
-        self.light = V3(0,1,1)
-        self.activateTexture = None
-        self.activateVertex = []
-
+        
     #Funcion para limpiar
     def clear(self):
         self.framebuffer = [
@@ -66,16 +62,6 @@ class Bitmap(object):
 
     #Funcion para dibujar triangulos
     def triangle(self, A, B, C, color=None, texture=None, texture_coords=(), intensity=1):
-        '''
-        A = next(self.activateVertex)
-        B = next(self.activateVertex)
-        C = next(self.activateVertex)
-        #Condicion para encontrar los datos de un archivo Bitmap
-        if self.activateTexture:
-            tA = next(self.activateVertex)
-            tB = next(self.activateVertex)
-            tC = next(self.activateVertex)
-        '''
         bbox_min, bbox_max = bbox(A, B, C)
         #Llenamos los poligonos con el siguiente Ciclo
         for x in range(bbox_min.x, bbox_max.x + 1):
@@ -146,9 +132,9 @@ class Bitmap(object):
             [      0      ,        0      , 0, 1],
         ]
         #Matriz general de rotacion
-        rotateMatriz = self.multiplicarMatrices(self.multiplicarMatrices(rotateMatriz_X, rotateMatriz_Y), rotateMatriz_Z)
+        rotateMatriz = multiplicarMatrices(multiplicarMatrices(rotateMatriz_X, rotateMatriz_Y), rotateMatriz_Z)
         #Matriz general que contiene translate, scale, rotate
-        self.Model = self.multiplicarMatrices(self.multiplicarMatrices(translatenMatrix, rotateMatriz), scaleMatrix)
+        self.Model = multiplicarMatrices(multiplicarMatrices(translatenMatrix, rotateMatriz), scaleMatrix)
 
     #Funcion para la viewMatrix
     def loadViewMatrix(self, x, y, z, center):
@@ -165,7 +151,7 @@ class Bitmap(object):
             [0, 0, 0,     1    ]
         ]
         #Multiplicamos las matrices para generar una sola
-        self.View = self.multiplicarMatrices(M, O)
+        self.View = multiplicarMatrices(M, O)
 
     #Funcion que contiene la matriz de projeccion
     def loadProjectionMatrix(self, coeff):
@@ -196,18 +182,18 @@ class Bitmap(object):
     def transform(self, vector):
         nuevoVector = [[vector.x], [vector.y], [vector.z], [1]]
         #Multiplicamos las diferentes matrices resultantes
-        modelMultix = self.multiplicarMatrices(self.Viewport, self.Projection)
-        viewMultix = self.multiplicarMatrices(modelMultix, self.View)
-        vpMultix = self.multiplicarMatrices(viewMultix, self.Model)
+        modelMultix = multiplicarMatrices(self.Viewport, self.Projection)
+        viewMultix = multiplicarMatrices(modelMultix, self.View)
+        vpMultix = multiplicarMatrices(viewMultix, self.Model)
         #Vector de transformacion
-        vectores = self.multiplicarMatrices(vpMultix, nuevoVector)
+        vectores = multiplicarMatrices(vpMultix, nuevoVector)
         #transformacion
         transformVector = [
             round(vectores[0][0]/vectores[3][0]),
             round(vectores[1][0]/vectores[3][0]),
             round(vectores[2][0]/vectores[3][0])
         ]
-        print(V3(*transformVector))
+        #print(V3(*transformVector))
         #retornamos los Valores
         return V3(*transformVector)
 
@@ -223,30 +209,30 @@ class Bitmap(object):
     '''
     Funciones para cargar cada uno de los elementos
     '''
-    def load(self, filename, translate=(0, 0, 0), scale=(1, 1, 1), texture=None):
+    def load(self, filename, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0,0,0), texture=None):
         objetos = Obj(filename)
+        self.loadModelMatrix(translate, scale, rotate)
         self.light = V3(0,0,1)
 
         for face in objetos.faces:
             vcount=len(face)
-
             if vcount == 3:
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
                 f3 = face[2][0] - 1
-
-                a = self.trans(objetos.vertices[f1], translate, scale)
-                b = self.trans(objetos.vertices[f2], translate, scale)
-                c = self.trans(objetos.vertices[f3], translate, scale)
+                #print(f1)
+                a = self.transform(V3(*objetos.vertices[f1]))
+                b = self.transform(V3(*objetos.vertices[f2]))
+                c = self.transform(V3(*objetos.vertices[f3]))
 
                 vnormal = norm(cross(sub(b,a), sub(c,a)))
                 intensity = dot(vnormal, self.light)
 
                 if not texture:
-                    grey =roun(255*intensity)
+                    grey =round(255*intensity)
                     if grey<0:
                         continue
-                    self.triangle(a,b,c, color=color(grey,grey,gey))
+                    self.triangle(a,b,c, color=color(grey,grey,grey))
                 else:
                     t1 = face[0][1] - 1
                     t2 = face[1][1] - 1
@@ -256,76 +242,3 @@ class Bitmap(object):
                     tC = V3(*objetos.vt[t3],0)
 
                     self.triangle(a,b,c, texture=texture, texture_coords=(tA,tB,tC), intensity=intensity)
-            else:
-                f1 = face[0][0] - 1
-                f2 = face[1][0] - 1
-                f3 = face[2][0] - 1
-                f4 = face[3][0] - 1
-
-                vertices = [
-                    self.trans(objetos.vertices[f1], translate, scale),
-                    self.trans(objetos.vertices[f2], translate, scale),
-                    self.trans(objetos.vertices[f3], translate, scale),
-                    self.trans(objetos.vertices[f4], translate, scale)
-                ]
-                normal = norm(cross(sub(vertices[0], vertices[1]), sub(vertices[1], vertices[2])))  # no necesitamos dos normales!!
-                intensity = dot(normal, light)
-                grey = round(255 * intensity)
-
-                A, B, C, D = vertices
-
-                if not texture:
-                    grey = round(255 * intensity)
-                    if grey < 0:
-                        continue
-                    self.triangle(A, B, C, color(grey, grey, grey))
-                    self.triangle(A, C, D, color(grey, grey, grey))
-                else:
-                    t1 = face[0][1] - 1
-                    t2 = face[1][1] - 1
-                    t3 = face[2][1] - 1
-                    t4 = face[3][1] - 1
-                    tA = V3(*model.tvertices[t1])
-                    tB = V3(*model.tvertices[t2])
-                    tC = V3(*model.tvertices[t3])
-                    tD = V3(*model.tvertices[t4])
-
-                    self.triangle(A, B, C, texture=texture, texture_coords=(tA, tB, tC), intensity=intensity)
-                    self.triangle(A, C, D, texture=texture, texture_coords=(tA, tC, tD), intensity=intensity)
-
-    #------ FUNCIONES PARA TRABJAR CON MATRICES ------#
-    # matriz uno = m1
-    # matriz dos = m2
-
-    #Comprobando teorema para crear una multiplicacion
-    def teorema(self, filas, columna):
-    	matriz = []
-    	for i in range(filas):
-    		#Añadimos una lista vacia
-    		matriz.append([])
-    		for j in range(columna):
-    			matriz[-1].append(0.0)
-    	#Retornamos la matriz creada
-    	return matriz
-
-    #Funcion para multiplicar las matrices
-    def multiplicarMatrices(self, m1,m2):
-    	#Condicion para multiplicar matrices es que el numero de columnas de una matriz debe ser el mismo que el numero de filas en la otra matriz
-    	#Las matrices deben de tener la misma longitud (2x2 * 2x2).... (4x4 * 4x4)
-    	#Basado en: https://www.geeksforgeeks.org/c-program-multiply-two-matrices/
-    	"""
-    		MATRIZ 1			MATRIZ 2
-    	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
-    	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
-    	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
-    	[ 0, 0 , 0 , 0 ]	[ 0, 0 , 0 , 0 ]
-    	"""
-    	matrizResultante = self.teorema(len(m1), len(m2[0]))
-    	for i in range(len(m1)):
-    		#Creamos la matriz
-    		for j in range(len(m2[0])):
-    			for k in range(len(m2)):
-    				#damos valores a la matriz resultante
-    				matrizResultante[i][j] += m1[i][k] * m2[k][j]
-    	#retornmaos los resultados de la matriz
-    	return matrizResultante

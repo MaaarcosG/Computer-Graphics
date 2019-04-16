@@ -10,12 +10,6 @@ import numpy
 def color(r,g,b):
     return bytes([r, b , g])
 
-def try_int(s, base=10, valor=None):
-    try:
-        return int(s, base) -1
-    except ValueError:
-        return valor
-
 "Clase que sirve para abrir un archivo obj"
 class Obj(object):
     def __init__(self, filename):
@@ -42,7 +36,7 @@ class Obj(object):
                     self.vt.append(list((map(float, value.split(' ')))))
                 elif prefix == 'f':
                     #Guardamos los datos en la lista
-                    self.faces.append([list(map(try_int, face.split('/'))) for face in value.split(' ')])
+                    self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
 
 'Clase para leer un archivo bmp'
 class Texture(object):
