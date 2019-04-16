@@ -14,7 +14,12 @@ class Bitmap(object):
         self.height = height
         self.vertexColor = color(255,255,255)
         self.clear()
-        
+        #vertexBuffer
+        #inicializamos las variables necesarias
+        self.light = V3(0,0,1)
+        self.activeTexture = None
+        self.VertexArray = []
+
     #Funcion para limpiar
     def clear(self):
         self.framebuffer = [
@@ -171,6 +176,7 @@ class Bitmap(object):
             [       0        ,         0        ,  0  ,          1           ]
         ]
 
+    #Funcion para encontrar la transformacion
     def trans(self, vertex, translate=(0,0,0), scale=(1,1,1)):
         return V3(
         round((vertex[0] + translate[0]) * scale[0]),
@@ -213,7 +219,7 @@ class Bitmap(object):
         objetos = Obj(filename)
         self.loadModelMatrix(translate, scale, rotate)
         self.light = V3(0,0,1)
-
+        #Ciclo para recorrer las carras
         for face in objetos.faces:
             vcount=len(face)
             if vcount == 3:
@@ -224,10 +230,10 @@ class Bitmap(object):
                 a = self.transform(V3(*objetos.vertices[f1]))
                 b = self.transform(V3(*objetos.vertices[f2]))
                 c = self.transform(V3(*objetos.vertices[f3]))
-
+                #Calculamos el vector vnormal
                 vnormal = norm(cross(sub(b,a), sub(c,a)))
                 intensity = dot(vnormal, self.light)
-
+                #Si no encuentra textura que haga lo siguiente
                 if not texture:
                     grey =round(255*intensity)
                     if grey<0:
@@ -240,5 +246,94 @@ class Bitmap(object):
                     tA = V3(*objetos.vt[t1],0)
                     tB = V3(*objetos.vt[t2],0)
                     tC = V3(*objetos.vt[t3],0)
-
+                    #Mandamos los datos a la funcion que se encargara de dibujar el
                     self.triangle(a,b,c, texture=texture, texture_coords=(tA,tB,tC), intensity=intensity)
+
+    '''
+    Ejemplos de Clases
+    '''
+    def triangulo(self):
+        #Utilizamos datos iteration
+        A = next(self.VertexArray)
+        B = next(self.VertexArray)
+        C = next(self.VertexArray)
+        #Si existe una textura, los datos los utilizamos como iteraion
+        if self.activeTexture:
+            tA = next(self.VertexArray)
+            tB = next(self.VertexArray)
+            tC = next(self.VertexArray)
+        #Calculamos el vector normal
+        normal = norm(cross(sub(B,A), sub(C,A)))
+        intensity = dot(normal, self.light)
+        #Evitamos los numeros negativos
+        if intensity<0:
+            return
+        #Llenamos los poligonos con el siguiente Ciclo
+        bbox_min, bbox_max = bbox(A, B, C)
+        for x in range(bbox_min.x, bbox_max.x + 1):
+            for y in range(bbox_min.y, bbox_max.y + 1):
+                #Coordenads barycentricas
+                w, v, u = baricentricas(A, B, C, V2(x,y))
+                #Condicion para evitar numeros negativos
+                if (w<0) or (v<0) or (u<0):
+                    continue
+                #Condicon para los datos de la textura
+                if self.activeTexture:
+                    tx = tA.x * w + tB.x * v + tC.x * u
+                    ty = tA.y * w + tB.y * v + tC.y * u
+                    #Mandamos los colores
+                    color = self.activeTexture.get_color(tx, ty, intensity)
+                #Valores para la coordenada z
+                z = A.z * w + B.z * v + C.z * u
+                #Condicion para evitar numeros negativos
+                if (x<0) or (y<0):
+                    continue
+                if x < len(self.zbuffer) and y < len(self.zbuffer[x]) and z > self.zbuffer[x][y]:
+                    self.point(x, y, color)
+                    self.zbuffer[x][y] = z
+
+    def glLoad(self, filename, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0)):
+        #Mandamos el modelo a la funcion para encontrar la matriz
+        self.loadModelMatrix(translate, scale, rotate)
+        #Objetos que contiene el archivo obj
+        objetos = Obj(filename)
+        #Variables a utilizar
+        caras = objetos.faces
+        vetexes = objetos.vertices
+        vtexture = objetos.vt
+        #Lista para guardar los datos para el framebuffer
+        vertexBuffer = []
+        for face in caras:
+            #Ciclo para completar el modelo
+            for faceParte in face:
+                '''
+                a = (vetexes[0][faceParte[0]])
+                b = (vetexes[1][faceParte[0]])
+                c = (vetexes[2][faceParte[0]])
+                '''
+                vertex = self.transform(V3(*vetexes[faceParte[0]]))
+                #Añadimos el valor a la lista framebuffer
+                #Primer valor para debug 191
+                vertexBuffer.append(vertex)
+            #Condicon por si encuentra un archivo para la textura
+            if self.activeTexture:
+                for faceParte in face:
+                    '''
+                    a = (vtexture[0][faceParte[0]])
+                    b = (vtexture[1][faceParte[0]])
+                    c = (vtexture[2][faceParte[0]])
+                    '''
+                    tvertex = V3(*vtexture[faceParte[1]],0)
+                    vertexBuffer.append(tvertex)
+        #Guardamos los valores en la lista de vertices
+        self.VertexArray = iter(vertexBuffer)
+
+    #Codigo tomado como referencia, dada en Clase
+    #Esta funcion detiene y establece el poligono que faltaba
+    def draw(self, polygon):
+        if polygon == 'TRIANGLES':
+            try:
+                while True:
+                    self.triangulo()
+            except StopIteration:
+                print('El objeto a sido renderizado correctamente.')
