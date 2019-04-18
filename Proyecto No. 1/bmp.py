@@ -12,7 +12,8 @@ class Bitmap(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.vertexColor = color(255,255,255)
+        self.vertexColor = color(0,0,0)
+        self.clearColor = color(91,204,57)
         self.clear()
         #vertexBuffer
         #inicializamos las variables necesarias
@@ -53,6 +54,20 @@ class Bitmap(object):
             for y in range(self.width):
                 f.write(self.framebuffer[x][y])
         f.close()
+
+    #Funcion que crea la ventana
+    def glCreateWindow(self, width, height):
+        self.width = width
+        self.height = height
+        self.clear()
+
+    #Funcion que cambia el color con que funcionara glClear
+    def glClearColor(self, r, g, b):
+        self.rc = round(255*r)
+        self.gc = round(255*g)
+        self.bc = round(255*b)
+        self.clearColor = color(self.rc, self.gc, self.bc)
+
     #Funcion para mostrar el archivo
     def archivo(self, filename='out.bmp'):
         self.write(filename)
@@ -60,6 +75,12 @@ class Bitmap(object):
     #Funcion para el color
     def set_color(self, color):
         self.vertexColor =color
+
+    def glColor(self, r, g, b):
+        self.rv = round(255*r)
+        self.gv = round(255*g)
+        self.bv = round(255*b)
+        self.vertexColor = color(self.rv, self.gv, self.bv)
 
     #Funcion para el puntos
     def point(self, x, y, color=None):
@@ -76,6 +97,8 @@ class Bitmap(object):
                 #Condicion para evitar numeros negativos
                 if (w<0) or (v<0) or (u<0):
                     continue
+                if color:
+                    self.vertexColor = color
                 #Condicon para los datos de la textura
                 if texture:
                     tA, tB, tC = texture_coords
@@ -215,13 +238,22 @@ class Bitmap(object):
     '''
     Funciones para cargar cada uno de los elementos
     '''
-    def load(self, filename, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0,0,0), texture=None):
-        objetos = Obj(filename)
+    def load(self, filename, mtl=None, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0,0,0), texture=None):
         self.loadModelMatrix(translate, scale, rotate)
+        if not mtl:
+            objetos = Obj(filename)
+            objetos.read()
+        else:
+            objetos = Obj(filename,mtl)
+            objetos.read()
         self.light = V3(0,0,1)
         #Ciclo para recorrer las carras
         for face in objetos.faces:
-            vcount=len(face)
+            if mtl:
+                vcount = len(face)-1
+            else:
+                vcount = len(face)
+            #Revisamos cada car
             if vcount == 3:
                 f1 = face[0][0] - 1
                 f2 = face[1][0] - 1
@@ -233,13 +265,10 @@ class Bitmap(object):
                 #Calculamos el vector vnormal
                 vnormal = norm(cross(sub(b,a), sub(c,a)))
                 intensity = dot(vnormal, self.light)
+                if intensity<0:
+                    continue
                 #Si no encuentra textura que haga lo siguiente
-                if not texture:
-                    grey =round(255*intensity)
-                    if grey<0:
-                        continue
-                    self.triangle(a,b,c, color=color(grey,grey,grey))
-                else:
+                if texture:
                     t1 = face[0][1] - 1
                     t2 = face[1][1] - 1
                     t3 = face[2][1] - 1
@@ -248,6 +277,16 @@ class Bitmap(object):
                     tC = V3(*objetos.vt[t3],0)
                     #Mandamos los datos a la funcion que se encargara de dibujar el
                     self.triangle(a,b,c, texture=texture, texture_coords=(tA,tB,tC), intensity=intensity)
+                elif mtl:
+                    material2 = face[3]
+                    valores = objetos.material[material2]
+                    self.triangle(a,b,c, color = self.glColor(valores[0]*intensity,valores[1]*intensity, valores[2]*intensity))
+                else:
+                    grey =round(255*intensity)
+                    if grey<0:
+                        continue
+                    self.triangle(a,b,c, color=color(grey,grey,grey))
+
 
     '''
     Ejemplos de Clases
@@ -270,6 +309,10 @@ class Bitmap(object):
             return
         #Llenamos los poligonos con el siguiente Ciclo
         bbox_min, bbox_max = bbox(A, B, C)
+        vmiX = round(bbox_min.x)
+        vmaX = round(bbox_max.x)
+        vmiY = round(bbox_min.y)
+        vmaY = round(bbox_max.y)
         for x in range(bbox_min.x, bbox_max.x + 1):
             for y in range(bbox_min.y, bbox_max.y + 1):
                 #Coordenads barycentricas

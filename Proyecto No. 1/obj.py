@@ -10,6 +10,8 @@ import numpy
 def color(r,g,b):
     return bytes([r, b , g])
 
+# Funcion tomado de Clase, esta funciona encuentra los valores de la cara
+# Y los transforma en base 10, para que la transfomaciones sean mas pequeñas
 def try_int(s, base=10, valor=None):
     try:
         return int(s, base) -1
@@ -18,19 +20,33 @@ def try_int(s, base=10, valor=None):
 
 "Clase que sirve para abrir un archivo obj"
 class Obj(object):
-    def __init__(self, filename):
+    def __init__(self, filename, mtl=None):
+        self.verificador = False
         #Condicion para abrir archivo obj
         with open(filename) as f:
             self.lines = f.read().splitlines()
+        if mtl:
+            self.verificador = True
+            with open(mtl) as x:
+                self.linea = x.read().splitlines()
         #Todos los datos se guardaran en un arraay
         self.vertices = []
         self.vt = []    #tvertices
         self.faces = []
+        self.nvertices = []
+        self.tipoMat = []
+        self.kD = []
+        self.kdMap = []
+        self.ordenarMateriales = []
+        self.contadorCaras = []
+        self.material = {}
         #inicializamos la funcion para leer
         self.read()
 
     #Funcion para leer archivo
     def read(self):
+        self.mater = ''
+
         for line in self.lines:
             if line:
                 prefix, value = line.split(' ', 1)
@@ -41,8 +57,25 @@ class Obj(object):
                     #Guardamos los datos en la lista
                     self.vt.append(list((map(float, value.split(' ')))))
                 elif prefix == 'f':
-                    #Guardamos los datos en la lista
-                    self.faces.append([list(map(try_int, face.split('/'))) for face in value.split(' ')])
+                        if self.verificador == False:
+                            self.faces.append([list(map(int, face.split('/'))) for face in value.split(' ')])
+                        else:
+                            lista = [list(map(int, face.split('/'))) for face in value.split(' ')]
+                            lista.append(self.mater)
+                            self.faces.append(lista)
+
+                elif prefix == 'usemtl':
+                    self.mater = value
+        if self.verificador:
+            for line2 in self.linea:
+                if line2:
+                    prefix2, valor = line2.split(' ', 1)
+                    if prefix2 == 'newmtl':
+                        self.tipoMat.append(valor)
+                    if prefix2 == 'Kd':
+                        self.kD.append(list(map(float, valor.split(' '))))
+            for indice in range(len(self.tipoMat) - 1):
+                self.material[self.tipoMat[indice]] = self.kD[indice]
 
 'Clase para leer un archivo bmp'
 class Texture(object):
@@ -50,6 +83,7 @@ class Texture(object):
         self.path = path
         self.read()
 
+    #Funcion para leer
     def read(self):
         img = open(self.path, "rb")
         m = mmap.mmap(img.fileno(), 0, access=mmap.ACCESS_READ)
@@ -61,6 +95,7 @@ class Texture(object):
         self.pixels = numpy.frombuffer(all_bytes, dtype='uint8')
         img.close()
 
+    #Funcion que encuentra el color de la textura
     def get_color(self, tx, ty, intensity):
         x = int(tx * self.width)
         y = int(ty * self.height)

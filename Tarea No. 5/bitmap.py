@@ -171,17 +171,6 @@ def glVertex(x,y):
 	#print('glVertex X: %d y %d' % (PortX,PortY))
 	windows.point(PortX,PortY)
 
-#Funcion para cambiar el color de la funcion glVertex
-def glColor(r,g,b):
-	global windows
-	#Se realiza la multiplicacion para llevar a otro color, FUNCION FLOOR, para aproximar al numero mas pequeño
-	R = int(math.floor(r * 255))
-	G = int(math.floor(g * 255))
-	B = int(math.floor(b * 255))
-	#Devuelve los numeros para crear otro color, es decir limpiar el color.
-	#print("Vertex Color: %d, %d, %d" % (R,G,B))
-	windows.vertexColor = color(R,G,B)
-
 #Transformar datos a normal
 def nor(n):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
@@ -271,6 +260,12 @@ class Bitmap(object):
 
 	def point(self, x, y,color=None):
 		self.framebuffer[y][x]= color or self.vertexColor
+
+	def glColor(self, r, g, b):
+		self.red = round(255*r)
+		self.green = round(255*g)
+		self.blue = round(255*b)
+		self.vertexColor = color(self.red, self.green, self.blue)
 
 	def glLine(self, vertex1, vertex2):
 		x1 = vertex1[0]
@@ -424,58 +419,43 @@ class Bitmap(object):
 				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
 				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
 
-	def renderer_color(self, filename, scale=(1, 1), translate=(0, 0)):
-		#Abrimos el archivo
-		objetos = Obj(filename)
-		luz = v3(0,0,1)
-
-		caras = objetos.faces
-		vertexes = objetos.vertices
-		for face in caras:
-			vcount = len(face)
+	def renderer_color(self, filename, mtl= None, scale=(1, 1), translate=(0, 0)):
+		#Coordenada para la luz
+		self.light = v3(0,0,1)
+		if not mtl:
+			objetos = Obj(filename)
+			objetos.read()
+		else:
+			objetos = Obj(filename,mtl)
+			objetos.read()
+        #Ciclo para recorrer las carras
+		for face in objetos.faces:
+			if mtl:
+				vcount = len(face)-1
+			else:
+				vcount = len(face)
+			#REVISAMOS CADA UNO DE LAS CARAS
 			if vcount == 3:
 				f1 = face[0][0] - 1
 				f2 = face[1][0] - 1
 				f3 = face[2][0] - 1
-
-				vector_1 = self.transform(vertexes[f1], translate, scale)
-				vector_2 = self.transform(vertexes[f2], translate, scale)
-				vector_3 = self.transform(vertexes[f3], translate, scale)
-
-				vector_normal = normal(pCruz(resta(vector_1, vector_2), resta(vector_3, vector_1)))
-				intensidad = dot(vector_normal, luz)
-				tonalidad = round(255 * intensidad)
-
-				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
-				if tonalidad < 0:
-					continue
-
-				self.triangulos(vector_1, vector_2, vector_3, color(tonalidad, tonalidad, tonalidad))
-			else:
-
-				f1 = face[0][0] - 1
-				f2 = face[1][0] - 1
-				f3 = face[2][0] - 1
-				f4 = face[3][0] - 1
-
-				lista_vertices = []
-				V1 = self.transform(vertexes[f1], translate, scale)
-				V2 = self.transform(vertexes[f2], translate, scale)
-				V3 = self.transform(vertexes[f3], translate, scale)
-				V4 = self.transform(vertexes[f4], translate, scale)
-
-				lista_vertices.append(V1)
-				lista_vertices.append(V2)
-				lista_vertices.append(V3)
-				lista_vertices.append(V4)
-
-				vector_normal = normal(pCruz(resta(lista_vertices[0], lista_vertices[1]), resta(lista_vertices[1], lista_vertices[2])))  # no necesitamos dos normales!!
-				intensidad = dot(vector_normal, luz)
-				tonalidad = round(255 * intensidad)
-
-				#Si la tonalidad es menor a 0, es decir, negativo, que no pinte nada
-				if tonalidad < 0:
-					continue
-
-				self.triangulos(lista_vertices[0], lista_vertices[1], lista_vertices[2], color(tonalidad, tonalidad, tonalidad))
-				self.triangulos(lista_vertices[0], lista_vertices[2], lista_vertices[3], color(tonalidad, tonalidad, tonalidad))
+				#print(f1)
+				a = self.transform(objetos.vertices[f1], translate, scale)
+				b = self.transform(objetos.vertices[f2], translate, scale)
+				c = self.transform(objetos.vertices[f3], translate, scale)
+				#Calculamos el vector vnormal
+				vnormal = normal(pCruz(resta(b,a), resta(c,a)))
+				intensity = dot(vnormal, self.light)
+				#Evitamos los numeros negativos
+				if intensity<0:
+				    continue
+				#Si encuentra un archivo mtl 
+				if mtl:
+					material2 = face[3]
+					valores = objetos.material[material2]
+					self.triangulos(a,b,c, color = self.glColor(valores[0]*intensity,valores[1]*intensity, valores[2]*intensity))
+				else:
+					grey =round(255*intensity)
+					if grey<0:
+						continue
+					self.triangulos(a,b,c, color=color(grey,grey,grey))
