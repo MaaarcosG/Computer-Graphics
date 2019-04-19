@@ -12,7 +12,7 @@ class Bitmap(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.vertexColor = color(0,0,0)
+        self.vertexColor = color(255,255,255)
         self.clearColor = color(91,204,57)
         self.clear()
         #vertexBuffer
@@ -61,6 +61,17 @@ class Bitmap(object):
         self.height = height
         self.clear()
 
+    def glViewPort(self, x, y, width, height):
+        self.ViewPort_X = x
+        self.ViewPort_Y = y
+        self.ViewPort_H = height
+        self.ViewPort_W = width
+
+    def glVertex(self, x, y):
+        self.PortX = int((x+1) * self.ViewPort_W * (1/2) + self.ViewPort_X)
+        self.PortY = int((y+1) * self.ViewPort_H * (1/2) + self.ViewPort_Y)
+        self.point(self.PortX, self.PortY)
+
     #Funcion que cambia el color con que funcionara glClear
     def glClearColor(self, r, g, b):
         self.rc = round(255*r)
@@ -85,6 +96,42 @@ class Bitmap(object):
     #Funcion para el puntos
     def point(self, x, y, color=None):
         self.framebuffer[y][x] = color or self.vertexColor
+
+    #Funcion para crear lineas
+    def glLine(self, x1, y1, x2, y2):
+        #------ y = mx + b ------#
+        dx = abs(x2-x1)
+        dy = abs(y2-y1)
+        #Condicion
+        st = dy>dx
+        #Condicion de valores 0 en dx
+        if dx == 0:
+            for y in range(y1, y2+1):
+                self.point(x1, y)
+        #Condcicion para completar la lineas
+        if(st):
+            x1,y1 = y1,x1
+            x2,y2 = y2,x2
+        if(x1>x2):
+            x1,x2 = x2,x1
+            y1,y2 = y2,y1
+        #Valor en x e y
+        dx = abs(x2-x1)
+        dy = abs(y2-y1)
+        llenar = 0
+        limite = dx
+        y = y1
+        #Pendiente
+        #m = dy/dx
+        for x in range(x1,(x2+1)):
+            if(st):
+                self.point(y,x)
+            else:
+                self.point(x,y)
+            llenar += dy * 2
+            if llenar >= limite:
+                y += 1 if y1 < y2 else -1
+                limite += 2*dx
 
     #Funcion para dibujar triangulos
     def triangle(self, A, B, C, color=None, texture=None, texture_coords=(), intensity=1):

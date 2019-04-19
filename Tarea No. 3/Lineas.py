@@ -94,3 +94,5 @@ def cubo_isometrico():
 	glLine(287,200,350,400)
 	glLine(113,200,350,400)
 	glFinish()
+
+imagen_3()

@@ -6,7 +6,7 @@
 
 import struct
 import math
-from obj import *
+#from obj import *
 
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
@@ -67,7 +67,7 @@ def glClearColor(r,g,b):
 	R = int(math.floor(r * 255))
 	G = int(math.floor(g * 255))
 	B = int(math.floor(b * 255))
-	#Devuelve los numeros para crear otro color, es decir limpiar el color. 
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
 	print("Limpieza de color: %d, %d, %d" % (R,G,B))
 	windows.clearColor = color(R,G,B)
 
@@ -75,7 +75,7 @@ def glClearColor(r,g,b):
 #Funcion que cambie el color de un punto.
 def glVertex(x,y):
 	global ViewPort_X, ViewPort_Y, ViewPort_H, ViewPort_W, windows
-	
+
 	PortX = int((x+1) * ViewPort_W * (1/2) + ViewPort_X)
 	PortY = int((y+1) * ViewPort_H * (1/2) + ViewPort_Y)
 	print('glVertex X: %d y %d' % (PortX,PortY))
@@ -88,19 +88,19 @@ def glColor(r,g,b):
 	R = int(math.floor(r * 255))
 	G = int(math.floor(g * 255))
 	B = int(math.floor(b * 255))
-	#Devuelve los numeros para crear otro color, es decir limpiar el color. 
+	#Devuelve los numeros para crear otro color, es decir limpiar el color.
 	print("Vertex Color: %d, %d, %d" % (R,G,B))
 	windows.vertexColor = color(R,G,B)
 
 #Funcion para crear lineas
 def glLine(x1,x2,y1,y2):
 	global windows
-	#--------# y = mx + b #--------# 
+	#--------# y = mx + b #--------#
 	#Valores en X
 	#Ciclo para evitar los numeros negativos en X
 	if (x1>x2):
 		dx = (x1 - x2)
-	else: 
+	else:
 		dx = (x2 - x1)
 
 	#Condicion cuando la pendiente es ---> (dy/0)
@@ -113,14 +113,14 @@ def glLine(x1,x2,y1,y2):
 	#Ciclo para evitar los numeros negativos en Y
 	if (y1>y2):
 		dy = (y1 - y2)
-	else: 
+	else:
 		dy = (y2 - y1)
-		
+
 	#Condicion para completar la linea
 	if(dy>dx):
 		x1,y1 = y1,x1
 		x2,y2 = y2,x2
-	
+
 	if(x1>x2):
 		x1,x2 = x2,x1
 		y1,y2 = y2,y1
@@ -149,7 +149,7 @@ def glFinish():
 def load(self, filename, traslate, scale):
 	objeto = Obj(filename)
 
-	for face in model.faces: 
+	for face in model.faces:
 		#Conteo de los vertices
 		vcount = len(face)
 
@@ -223,4 +223,3 @@ class Bitmap(object):
 
 	def point(self, x, y):
 		self.framebuffer[y][x]= self.vertexColor
-
