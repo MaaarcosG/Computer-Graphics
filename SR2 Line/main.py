@@ -11,4 +11,3 @@ from lines import *
 #Imagen 1
 print("Imagen de la opcion 1: ")
 print(imagen_1())
-
