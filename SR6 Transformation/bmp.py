@@ -312,6 +312,7 @@ class Bitmap(object):
                 a = self.transform(V3(*objetos.vertices[f1]))
                 b = self.transform(V3(*objetos.vertices[f2]))
                 c = self.transform(V3(*objetos.vertices[f3]))
+                print(a)
                 #Calculamos el vector vnormal
                 vnormal = norm(cross(sub(b,a), sub(c,a)))
                 intensity = dot(vnormal, self.light)
