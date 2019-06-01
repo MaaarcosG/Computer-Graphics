@@ -134,7 +134,7 @@ class Bitmap(object):
                 limite += 2*dx
 
     #Funcion para dibujar triangulos
-    def triangle(self, A, B, C, color=None, texture=None, texture_coords=(), intensity=1):
+    def triangle(self, A, B, C, color=None, texture=None, shader=None, normals = None, texture_coords=(), intensity=1):
         bbox_min, bbox_max = bbox(A, B, C)
         #Llenamos los poligonos con el siguiente Ciclo
         for x in range(bbox_min.x, bbox_max.x + 1):
@@ -153,6 +153,9 @@ class Bitmap(object):
                     ty = tA.y * w + tB.y * v + tC.y * u
                     #Mandamos los colores
                     color = texture.get_color(tx, ty, intensity)
+                # si encuentra un shader
+                elif shader:
+                    color = shader(self, bary(w,v,u), vnormals=normals, bcolor=bcolor)
                 #Valores para la coordenada z
                 z = A.z * w + B.z * v + C.z * u
                 #Condicion para evitar numeros negativos
@@ -285,7 +288,7 @@ class Bitmap(object):
     '''
     Funciones para cargar cada uno de los elementos
     '''
-    def load(self, filename, mtl=None, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0,0,0), texture=None):
+    def load(self, filename, mtl=None, translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0,0,0), texture=None, shader=None):
         self.loadModelMatrix(translate, scale, rotate)
         if not mtl:
             objetos = Obj(filename)
@@ -324,6 +327,16 @@ class Bitmap(object):
                     tC = V3(*objetos.vt[t3],0)
                     #Mandamos los datos a la funcion que se encargara de dibujar el
                     self.triangle(a,b,c, texture=texture, texture_coords=(tA,tB,tC), intensity=intensity)
+                # Si encuentra un shader
+                elif shader:
+                    t1 = face[0][1] - 1
+                    t2 = face[1][1] - 1
+                    t3 = face[2][1] - 1
+                    nA = V3(*objetos.nvertices[t1],0)
+                    nB = V3(*objetos.nvertices[t2],0)
+                    nC = V3(*objetos.nvertices[t3],0)
+                    self.triangle(a, b, c, baseColor=color, shader=shader, normals=(nA, nB, nC))
+                # Si encuentra un archivo para el color
                 elif mtl:
                     material2 = face[3]
                     valores = objetos.material[material2]

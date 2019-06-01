@@ -65,5 +65,7 @@ def poligono_4():
 Main to ejecute
 """
 print('Bienvenido')
+poligono_1()
 poligono_2()
+poligono_3()
 poligono_4()

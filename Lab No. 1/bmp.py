@@ -6,7 +6,7 @@
 
 import struct
 import math
-from obj import *
+#from obj import *
 
 def char(c):
 	return struct.pack("=c",c.encode('ascii'))
@@ -207,6 +207,7 @@ def filling_any_polygon(vertices):
 	#print(max(mat[0]))	
 
 def verificar_puntos(x,y,vertices):
+	# algoritmo sacado de la siguiente pagina: https://www.geeksforgeeks.org/scan-line-polygon-filling-using-opengl-c/
 	counter = 0
 	p1 = vertices[0]
 	n = len(vertices)

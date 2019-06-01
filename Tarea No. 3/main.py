@@ -4,7 +4,7 @@
 # Carne: 17909
 # Fecha: 08 de febrero del 2019
 
-from lines import *
+from Lineas import *
 
 #---------RENDERIZADO DE LINEAS EN UNA IMAGEN BMP---------#
 

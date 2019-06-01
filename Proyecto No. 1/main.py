@@ -5,12 +5,33 @@
 
 from bmp import *
 import random
+import algebra
 
 objetos = Bitmap(1000,1000)
 objetos.glCreateWindow(1000,1000)
 objetos.glViewPort(0,0,999,999)
 
+# Funcion para aplicar shader a al objeto
+def luna(light=(0,0,1), bary=(1,1,1), vnormals=(), bcolor=(1,1,1)):
+    # coordenadas barycentricas
+    w, v, u = bary
+    # vectores normales
+    nA, nB, nC = vnormals
+    light = (0,1,-2)
+    iA, iB, iC = [algebra.dot(n, light) for n in (nA, nB, nC)]
+    # Calculamos la intensidad de la luz
+    intensity = w*iA + v*iB + u*iC
 
+    return objetos.glColor(
+        bcolor[2] * intensity,
+        bcolor[1] * intensity,
+        bcolor[0] * intensity
+    )
+
+objetos.lookAt(V3(-1,0,5), V3(0.8,-0.8,0), V3(0,1,0))
+objetos.load('./models/sol.obj', mtl='./models/sol.mtl', translate=(0,0,0), scale=(0.2,0.2,0.2), rotate=(0,1,0), shader=None)
+
+'''
 #Codigo para hacer efecto de gravedad
 objetos.glLine(10,10,10,110)
 objetos.glLine(990,10,10,10)
@@ -82,6 +103,7 @@ objetos.load('./models/vader.obj', mtl='./models/vader.mtl', translate=(0, 0, 0)
 #Efecto del sol
 objetos.lookAt(V3(-1,0,5), V3(0.8,-0.8,0), V3(0,1,0))
 objetos.load('./models/sol.obj', mtl='./models/sol.mtl', translate=(0,0,0), scale=(0.2,0.2,0.2), rotate=(0,1,0))
+'''
 
 '''
 # TOQUE DE LA CASA
