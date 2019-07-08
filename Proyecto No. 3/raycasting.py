@@ -58,7 +58,7 @@ class Mapa(object):
     # mapa para generar de forma random el mundo
     def randomize(self):
         gmap = {}
-       
+
         # itertools para tener un ciclo, calcula el producto cartesiano
         for coord in itertools.product(range(self.size), repeat=2):
             if random.random()<0.2:
@@ -97,7 +97,7 @@ class Mapa(object):
             # añadimos a la lista los valores obtenidos
             ray.append(ns)
             origen = ns
-            # ----> debug print(origen)
+            print(origen)
         return ray
 
     # actualizamos los valores del mapa
@@ -255,6 +255,7 @@ class Camera(object):
             point = player.x, player.y
             # le damos los valores de las colum
             ray = gmap.raycast(point, player.direction+angle, 8)
+            #print(len(ray))
             self.renderC(column, ray, angle, gmap)
 
     # renderiza cada una de las columnas
